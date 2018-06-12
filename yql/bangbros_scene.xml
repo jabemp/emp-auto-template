@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var xpath="//span[@class='h2-trailer-style'] | //span[@class='h2-trailer-list']/b[@class='t-font']  | //p[@class='para-class t-para'] | //b[@class='t-font']/a[contains(@href,'videos-search')] | //p[@class='trailer-thumbs clearfix']/a/img"
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				//y.log(results);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				var baseurl = 'http://www.bangbros.com';
+				var responseXML = <scene></scene>;
+				
+				//var results = query.results;
+				function processScene(scenedata) {
+					var sceneurl = url;
+					
+					responseXML.site += <site>{scenedata.b[0].a.text().toString()}</site>;
+					
+					var sceneid = scenedata.img[0].@src.match(/shoots\/(.[^\/]+)/)[1];
+					responseXML.id += <id>{sceneid}</id>;
+					
+					var title = scenedata.span.text().toString().replace(/\u00A0/g, ' ').trim();
+					
+					responseXML.title += <title>{title}</title>;
+					responseXML.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					var releasedate = scenedata.b[1].text().toString().trim();
+					responseXML.dateiso = <dateiso>{new Date(releasedate).toISOString().substring(0,10)}</dateiso>;
+
+					responseXML.thumbs += <thumbs></thumbs>;
+					responseXML.images += <images></images>;
+					
+					var pset=false;
+					for each (var img in scenedata.img) {
+						responseXML.thumbs.thumb += <thumb>{img.@src}</thumb>;
+						responseXML.images.image += <image>{img.@src.toString().replace(/(\d+\.)jpg/g, "big$1jpg")}</image>;
+						if (!pset) {
+							responseXML.poster += <poster>{img.@src.toString().replace(/\/bangbros\/.+/,'/members/450x340.jpg').replace(/http:/,'https:').replace(/bangbros\.com/,'bbroscdn.com')}</poster>;
+							pset = true;
+						}
+					}
+
+					var models = y.xpath(scenedata,"//a[contains(@href,'models')]");
+				
+					var castTemp = [];
+					responseXML.models += <models></models>;
+				
+					for each (var a in models) {
+						model = <model></model>;
+						model.model += <name>{a.text()}</name>;
+						model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+						castTemp.push(a.text());
+						responseXML.models.model += model;
+					}
+					responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					
+					
+					var tags = y.xpath(scenedata,"//a[contains(@href,'videos-search')]");
+				
+					var tagsTemp = [];
+				
+					for each (var tag in tags) {
+						tagsTemp.push(tag.text());
+					}
+					responseXML.tags += <tags>{tagsTemp.join(', ')}</tags>;
+
+					responseXML.description += <desc>{scenedata.p.(@class == "para-class t-para").text().toString().trim()}</desc>;
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
