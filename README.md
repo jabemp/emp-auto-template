@@ -1,0 +1,1 @@
+# emp-auto-template
