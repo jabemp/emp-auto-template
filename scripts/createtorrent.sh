@@ -22,7 +22,7 @@ function createTorrent() {
 	
 	torrentfullpath="${outputfolder}/${filenamebase}.torrent"
 	local params="-P -c \"\" -f -o ${torrentfullpath} ${inputfile} ${announceurl}"
-	local cmd="python3 $py3ct $params"
+	local cmd="python3 ${torrentcreateclient} $params"
 	#echo "PY3CT command: $cmd"
 	local cmdrun=$(eval $cmd)
 	echo "$torrentfullpath"
