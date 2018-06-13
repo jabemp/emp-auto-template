@@ -194,7 +194,7 @@ echo "Media info report: ${mediainforeport}"
 
 setMediaInfoVars
 
-. "${scriptsfolder}/createscreens.sh"
+. "${screensscript}"
 
 preloadedscreens=$(getPreloadedData "${releasesite}_${releasedate}_screens")
 if [[ "${preloadedscreens}" == "" ]]; then
@@ -212,7 +212,7 @@ else
 	writelog "Pre-generated screens has been loaded from config, skipping creating."
 	echo "Pre-generated screens has been loaded from config, skipping creating."
 fi
-. "${screensscript}"
+. "${torrentcreatescript}"
 . "${trackerconfig}"
 
 SCENE_SITENAME="${releasesite}"
