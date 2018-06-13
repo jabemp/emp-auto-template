@@ -4,7 +4,8 @@
 scriptsfolder="${BASH_SOURCE%/*}"
 if [[ ! -d "${scriptsfolder}" ]]; then scriptsfolder="$PWD"; fi
 
-. "${scriptsfolder}/../config/settings.cfg"
+configfolder="${scriptsfolder}/../config"
+. "${configfolder}/settings.cfg"
 
 if [ ! -d "${tempfolder}" ]; then
     echo "Temporary folder does not exist, check variable 'tempfolder'"
