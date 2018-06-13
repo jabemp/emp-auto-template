@@ -212,7 +212,7 @@ else
 	writelog "Pre-generated screens has been loaded from config, skipping creating."
 	echo "Pre-generated screens has been loaded from config, skipping creating."
 fi
-. "${scriptsfolder}/createtorrent.sh"
+. "${screensscript}"
 . "${trackerconfig}"
 
 SCENE_SITENAME="${releasesite}"
