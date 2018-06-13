@@ -6,6 +6,11 @@ if [[ ! -d "${scriptsfolder}" ]]; then scriptsfolder="$PWD"; fi
 
 . "${scriptsfolder}/../config/settings.cfg"
 
+if [ ! -f "${trackercookiefile}" ]; then
+    echo "Missing EMP cookie file, check variable 'trackercookiefile'"
+    exit 1
+fi
+
 #import functions
 . "${scriptsfolder}/corefuncs.sh"
 . "${scriptsfolder}/mediainfofuncs.sh"
