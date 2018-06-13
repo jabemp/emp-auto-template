@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#Optional site specific tagfix with sed replace expressions
+tagfixsite="${scriptsfolder}/../tags/tagfix_${releasesite,,}.txt"
+
+#Optional network specific tagfix with sed replace expressions
+tagfixnetwork="${scriptsfolder}/..tags/tagfix_${network,,}.txt"
+
 function getNumericPart() {
 	local val=$(echo "$1" | sed -r 's/[^0-9\.]+//g')
 	echo "$val" 
