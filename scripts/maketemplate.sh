@@ -11,6 +11,16 @@ if [ ! -d "${tempfolder}" ]; then
     exit 1
 fi
 
+if [ ! -d "${downloadfolder}" ]; then
+    echo "Download folder does not exist, check variable 'downloadfolder'"
+    exit 1
+fi
+
+if [ ! -d "${torrentfilefolder}" ]; then
+    echo "Torrent file folder does not exist, check variable 'torrentfilefolder'"
+    exit 1
+fi
+
 if [ ! -f "${trackercookiefile}" ]; then
     echo "Missing EMP cookie file, check variable 'trackercookiefile'"
     exit 1
