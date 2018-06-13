@@ -6,8 +6,18 @@ if [[ ! -d "${scriptsfolder}" ]]; then scriptsfolder="$PWD"; fi
 
 . "${scriptsfolder}/../config/settings.cfg"
 
+if [ ! -d "${tempfolder}" ]; then
+    echo "Temporary folder does not exist, check variable 'tempfolder'"
+    exit 1
+fi
+
 if [ ! -f "${trackercookiefile}" ]; then
     echo "Missing EMP cookie file, check variable 'trackercookiefile'"
+    exit 1
+fi
+
+if [[ "${announceurl}" == "CHANGEME" ]] || [[ "${announceurl}" == "" ]]; then
+    echo "Your personal EMP announce url is not configured, check variable 'announceurl'"
     exit 1
 fi
 
