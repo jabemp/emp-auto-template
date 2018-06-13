@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ "${network}" != "" ]]; then
-	networkconfig="${scriptsfolder}/${network,,}.cfg"
+	networkconfig="${scriptsfolder}/${network,,}.sh"
 	writelog "Checking network specific config..."
 	if [ -f "${networkconfig}" ]; then
 		writelog "Loading network specific config from '${networkconfig}'"
@@ -12,7 +12,7 @@ if [[ "${network}" != "" ]]; then
 	fi
 fi
 
-siteconfig="${scriptsfolder}/${releasesite,,}.cfg"
+siteconfig="${scriptsfolder}/${releasesite,,}.sh"
 writelog "Checking site specific config..."
 if [ -f "${siteconfig}" ]; then
 	writelog "Loading site specific config from '${siteconfig}'"
