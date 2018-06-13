@@ -1,0 +1,16 @@
+[align=center]
+[#=top]
+[table=nball][tr][td][img]${SCENE_MAINIMAGE}[/img][/td][/tr][/table]
+[url=#bottom]Jump to bottom[/url]
+[size=6][spoiler=More Pics]${SCENE_IMAGES}[br][url=#top]Go back up[/url][/spoiler][/size]
+[table=840px,nball]
+[tr][td][align=justify][size=10]${SCENE_SITENAME_TITLE_CASE}[/size][/align][/td][td][align=right][size=2]Date: ${SCENE_DATE}[/size][/align][/td][/tr][/table][table=840px,nball][tr][td][align=justify][size=4]${SCENE_TITLE}[/size]
+[size=3][color=#0066ff]${SCENE_CAST}[/color][/size][br]
+[size=2][color=#6e6e6e][i]${SCENE_DESCRIPTION}[/i][/color]
+
+${SCENE_CUSTOM_DESCRIPTION}
+[/size][/align]
+[/td][/tr][/table]
+[table=840px][tr]
+[td][align=center]${SCENE_MEDIA_FORMAT}[/align][/td][td][align=center]${SCENE_MEDIA_FILESIZE}[/align][/td][td][align=center]${SCENE_MEDIA_DURATION}[/align][/td][td][align=center]${SCENE_MEDIA_RESOLUTION}[/align][/td][td][align=center]${SCENE_MEDIA_BITRATE}[/align][/td][td][align=center]${SCENE_MEDIA_FRAMERATE}[/align][/td]
+[/tr][/table][br][table=nball][tr][td]${SCENE_SCREENS}[/td][/tr][/table][br][url=#top]Go back up[/url][#=bottom][/align]
