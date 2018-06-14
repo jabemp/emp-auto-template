@@ -8,11 +8,7 @@
 			<execute><![CDATA[
 				var domain = "21sextury.com";
 				var path = "/en/";
-				var patt = /(teachmefisting|oldyounglesbianlove|zoliboy|grandpasfuckteens|lustygrandmas)/gi;
 				var patt2 = /^21/i;
-				if (patt.test(site)) {
-					domain = "21sextreme.com";
-				}
 				if (patt2.test(site)) {
 					domain = '21naturals.com';
 				}
