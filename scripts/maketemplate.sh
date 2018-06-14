@@ -391,7 +391,7 @@ SCENE_TORRENT_TITLE=$(getTorrentTitle)
 writelog "Torrent title: ${SCENE_TORRENT_TITLE}"
 echo "Torrent title: ${SCENE_TORRENT_TITLE}"
 
-writelog "Creating torrent, with the following params...)"
+writelog "Creating torrent, with the following params..."
 writelog "Input: ${TORRENT_INPUT}"
 writelog "Output: ${torrentfilefolder}"
 writelog "Announce url: ${announceurl}"
