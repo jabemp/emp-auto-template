@@ -29,7 +29,7 @@
 				  }
 				  return number + ""; // always return a string
 				}
-				var baseurl = 'https://www.21sextury.com';
+				var baseurl = 'https://www.21sextreme.com';
 				var responseXML = <scene></scene>;
 				
 				//var results = query.results;
