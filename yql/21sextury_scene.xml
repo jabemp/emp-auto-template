@@ -61,12 +61,6 @@
 					responseXML.thumbs += <thumbs></thumbs>;
 					responseXML.images += <images></images>;
 					
-					/*var id = responseXML.poster.match(/\d{5,6}/g)[1];
-					for (i = 1; i < 16; i++) { 
-						var imagelink = 'https://images03-fame.gammacdn.com/s/movies/' + id + '/' +  id + '_01/pictures/sc_' + id + '_01_' + zeroFill(i,2) + '.jpg';
-						responseXML.images.image += <image>{imagelink}</image>;
-					}*/
-					
 					try {
 						var models = y.xpath(scenedata,"//div[@class='sceneCol sceneColActors']/a");
 				
