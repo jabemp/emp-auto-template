@@ -27,3 +27,21 @@
 
 If core variables are misconfigured, the script should display an error message about the problem and exit.
 
+### Custom site handling
+#### Downloading images before uploading
+Some paysites have query parameters in their image urls for a given scene, usually due to content protection measurements. The jerking image host does not support to load such url's directly, so instead they must be downloaded to your temporary folder first. To enable this functionality include variable `dlimages="1"` and it will be handled automatically.
+
+#### Overriding functions
+Some functions in `corefuncs.sh` are mean to be overridden by a custom site config. These are:
+* `preMergeTemplate`
+
+This function can be used to have create additional variables with content referenced in your template definition BEFORE the actual merging is done.
+
+* `getQueryOverrideParamsForSceneList` and `getQueryOverrideParamsForScene`
+
+Here you can modify the input parameters for an YQL request to identify your episode or fetching episode metadata. This can for example include: 
+- Downloading html via phantomjs from sites that heavily depends on javascript to be rendered completely.
+- Fetch html from sites the require cookie and certain headers to be set.
+You can then store the result on a public folder so that YQL can fetch the end result. Othe
+
+
