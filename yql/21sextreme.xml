@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			 <key id="site" type="xs:string" paramType="path" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var domain = "21sextury.com";
+				var path = "/en/";
+				var patt = /(teachmefisting|oldyounglesbianlove|zoliboy|grandpasfuckteens|lustygrandmas)/gi;
+				var patt2 = /^21/i;
+				if (patt.test(site)) {
+					domain = "21sextreme.com";
+				}
+				if (patt2.test(site)) {
+					domain = '21naturals.com';
+				}
+				
+				var baseurl = 'https://www.' + domain;
+				
+				var xpath = '//div[contains(@class,"tlcItem playlistable_scenes")]/div[@class="tlcDetails"]';
+				
+				var url = baseurl + path + 'videos';
+				
+				var html = y.rest(url).accept('text/html').get().response;
+				var results = y.tidy(html);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					
+					var scenelink = scenedata.div.a;
+					//y.log(scenedata);
+					try {
+						var sceneurl = scenelink.@href.toString();
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					try {
+						var title = scenelink.text().toString().replace(/\u00A0/g, ' ').trim();
+						title = title.replace(/, Scene.+/gi,"");
+						scene.title += <title>{title}</title>;
+						scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+						scene.titlematch += <titlematch>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ").toLowerCase()}</titlematch>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					
+					try {
+						var releasedate = scenedata..span.(@class == "tlcSpecsDate").span.(@class == "tlcDetailsValue").text().toString().trim();
+						//09-19-2017
+						var dateparts = releasedate.split('-');
+						
+						var date = new Date(dateparts[2], dateparts[0]-1, dateparts[1]);
+									
+						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+						scene.date = <date>{datealtstring}</date>;
+						scene.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) { y.log('url: ' + e);}
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
