@@ -53,7 +53,7 @@ function runYqlQuery() {
 function prepareYqlQuery() {
 	local tablename="${1}"
 	local criteria="${2}"
-	local fulltableuri="${yqltableuri}/${tablename}"
+	local fulltableuri="${yqltablestore}/${tablename}"
 	if [ "${cachebuster}" -eq "1" ]; then
 		fulltableuri+="?t=${RANDOM}"
 	fi
