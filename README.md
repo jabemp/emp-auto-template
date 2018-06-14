@@ -23,8 +23,8 @@
 * To create screens you need Movie thumbnailer: http://moviethumbnail.sourceforge.net/ You will also need `tahomabd.ttf` font file, find it on Google. Put this font file in your mtn folder. (If you need 4K support use this instead https://github.com/thetmk/mtn/releases/tag/0.1 ) To use a total different tool, make the necessary changes in `createscreens.sh`
 
 ### Usage
-Syntax: `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.XXX.1080p.MP4-GRP` 
-If core variables are misconfigured, the script should display an error message about the problem and exit. Also, check logfile produced in your temp-folder.
+Syntax: `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.XXX.1080p.MP4-GRP [url to episode / scene]` 
+If core variables are misconfigured, the script should display an error message about the problem and exit. Also, check logfile produced in your temp-folder. If second paramter `url` is supplied, any episode matching is skipped and the url will be used directly.
 
 ### Custom site handling
 #### Downloading images before uploading
