@@ -13,9 +13,6 @@
 				if (patt.test(site)) {
 					domain = "21sextreme.com";
 				}
-				if (patt2.test(site)) {
-					domain = '21naturals.com';
-				}
 				
 				var baseurl = 'https://www.' + domain;
 				
