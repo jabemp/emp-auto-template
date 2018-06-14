@@ -30,6 +30,9 @@ If core variables are misconfigured, the script should display an error message 
 #### Downloading images before uploading
 Some paysites have query parameters in their image urls for a given scene, usually due to content protection measurements. The jerking image host does not support to load such url's directly, so instead they must be downloaded to your temporary folder first. To enable this functionality include variable `dlimages="1"` and it will be handled automatically.
 
+#### Custom BB-code templates
+To make network or site specific templates, please follow the following naming convention: `<network>_template.txt` or  `<sitename>_template.txt` Note: filenames must be all lower case.
+
 #### Overriding functions
 Some functions in `corefuncs.sh` are encouraged to be overridden by a custom site config. These are:
 * `preMergeTemplate`
