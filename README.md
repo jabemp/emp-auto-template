@@ -31,7 +31,7 @@ If core variables are misconfigured, the script should display an error message 
 Some paysites have query parameters in their image urls for a given scene, usually due to content protection measurements. The jerking image host does not support to load such url's directly, so instead they must be downloaded to your temporary folder first. To enable this functionality include variable `dlimages="1"` and it will be handled automatically.
 
 #### Overriding functions
-Some functions in `corefuncs.sh` are mean to be overridden by a custom site config. These are:
+Some functions in `corefuncs.sh` are encouraged to be overridden by a custom site config. These are:
 * `preMergeTemplate`
 
 This function can be used to have create additional variables with content referenced in your template definition BEFORE the actual merging and .torrent creation is done. Here you can create folder to include photoset or create .gif files from trailer or media file. Additional image upload must be handled in your function. If you need to change the source for torrent, set the variable `TORRENT_INPUT` to a custom folder. Default is the extracted media file.
