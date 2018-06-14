@@ -24,5 +24,6 @@
 
 ### Usage
 `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.XXX.1080p.MP4-GRP`
+
 If core variables are misconfigured, the script should display an error message about the problem and exit.
 
