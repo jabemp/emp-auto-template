@@ -27,7 +27,7 @@ function downloadURLCustom() {
 	httpstatus=$($cmd)
 	#local outf=$(downloadUrlFromPJS "$1" "${outputfile}")
 	writelog "Result: ${httpstatus}"
-	echo "http://${publicfolder}/${tempfile}"
+	echo "${publicaddress}/${tempfile}"
 }
 
 function downloadURLSceneCustom() {
@@ -57,7 +57,7 @@ function downloadURLSceneCustom() {
 	httpstatus=$($cmd)
 	#local outf=$(downloadUrlFromPJS "$1" "${outputfile}")
 	writelog "Result: ${httpstatus}"
-	echo "http://${publicfolder}/${tempfile}"
+	echo "${publicaddress}/${tempfile}"
 }
 
 function getQueryOverrideParamsForSceneList() {
