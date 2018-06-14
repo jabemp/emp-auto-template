@@ -23,9 +23,8 @@
 * To create screens you need Movie thumbnailer: http://moviethumbnail.sourceforge.net/ You will also need `tahomabd.ttf` font file, find it on Google. Put this font file in your mtn folder. (If you need 4K support use this instead https://github.com/thetmk/mtn/releases/tag/0.1 ) To use a total different tool, make the necessary changes in `createscreens.sh`
 
 ### Usage
-`./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.XXX.1080p.MP4-GRP`
-
-If core variables are misconfigured, the script should display an error message about the problem and exit.
+Syntax: `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.XXX.1080p.MP4-GRP` 
+If core variables are misconfigured, the script should display an error message about the problem and exit. Also, check logfile produced in your temp-folder.
 
 ### Custom site handling
 #### Downloading images before uploading
@@ -35,13 +34,13 @@ Some paysites have query parameters in their image urls for a given scene, usual
 Some functions in `corefuncs.sh` are mean to be overridden by a custom site config. These are:
 * `preMergeTemplate`
 
-This function can be used to have create additional variables with content referenced in your template definition BEFORE the actual merging is done.
+This function can be used to have create additional variables with content referenced in your template definition BEFORE the actual merging and .torrent creation is done. Here you can create folder to include photoset or create .gif files from trailer or media file. Additional image upload must be handled in your function. If you need to change the source for torrent, set the variable `TORRENT_INPUT` to a custom folder. Default is the extracted media file.
 
 * `getQueryOverrideParamsForSceneList` and `getQueryOverrideParamsForScene`
 
 Here you can modify the input parameters for an YQL request to identify your episode or fetching episode metadata. This can for example include: 
 - Downloading html via phantomjs from sites that heavily depends on javascript to be rendered completely.
 - Fetch html from sites the require cookie and certain headers to be set.
-You can then store the result on a public folder so that YQL can fetch the end result. Othe
+You can then store the result on a public folder so that YQL can fetch the end result on your web server.
 
 
