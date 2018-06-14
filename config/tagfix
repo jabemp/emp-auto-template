@@ -1,0 +1,4 @@
+#sed script
+#this script will be ran against each induvidual tag in a loop
+s/bj/blowjob/i
+s/^europe$/european/i
