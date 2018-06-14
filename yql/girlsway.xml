@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			 <key id="remoteurl" type="xs:string" paramType="variable" required="true"/>
+			 <key id="site" type="xs:string" paramType="variable" required="false"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://www.girlsway.com';
+				y.log('site: ' + site);
+				var extrapredicate = '';
+				if(site) {
+					extrapredicate = ' and ./div[@class="tlcSourceSite"]/span/span/a[contains(@href,"/en/videos/' + site + '")]';
+				}
+				
+				var xpath = '//div[contains(@class,"tlcItem playlistable_scenes")]/div[@class="tlcDetails"' + extrapredicate + ']';
+				y.log('XPath: ' + xpath);
+				
+				var html = y.rest(remoteurl).accept('text/html').get().response;
+				var results = y.tidy(html);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				responseXML = <scenes></scenes>;
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					//y.log(scenedata);
+					var scenelink = scenedata.div.(@class == 'tlcTitle').a;
+					//y.log(scenedata);
+					try {
+						var sceneurl = scenelink.@href.toString();
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					try {
+						var title = scenelink.text().toString().replace(/\u00A0/g, ' ').trim();
+						title = title.replace(/, Scene.+/gi,"");
+						scene.title += <title>{title}</title>;
+						//scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+						//scene.titlematch += <titlematch>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ").toLowerCase()}</titlematch>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					
+					try {
+						var releasedate = scenedata..span.(@class == "tlcSpecsDate").span.(@class == "tlcDetailsValue").text().toString().trim();
+						y.log(releasedate);
+						//2017-09-19
+						var dateparts = releasedate.split('-');
+						
+						var date = new Date(dateparts[0], dateparts[1]-1, dateparts[2]);
+									
+						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+						scene.date = <date>{datealtstring}</date>;
+						scene.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) { y.log('url: ' + e);}
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+					//break;
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

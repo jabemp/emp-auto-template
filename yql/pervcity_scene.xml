@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+
+   <bindings>
+		<select itemPath="" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'http://www.pervcity.com';
+
+				var xpath = "//title | //div[@class='popup_data_set_models'] | //div[contains(@class,'popup_data_set_des')] | //div[contains(@id,'getscreencaps')] | //input[@id='set_ID']";
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				var responseXML = <scene></scene>;
+				
+				//var results = query.results;
+				function processScene(scenedata) {
+					//y.log(scenedata);
+					
+					responseXML.title += <title>{scenedata..title.text()}</title>;
+					
+					var setID = scenedata..input.@value;
+					y.log('set id=' + setID);
+					var content = 'setId=' + setID
+					var posterdata = y.rest(baseurl + '/gettoken.php').contentType('application/x-www-form-urlencoded; charset=UTF-8').post(content).response;
+					y.log(posterdata);
+					var poster = y.xpath(posterdata, '//TrailerImg').text();
+					responseXML.poster += <poster>{poster}</poster>;
+					responseXML.images += <images></images>;
+					var castTemp = [];
+					
+					var models = y.xpath(scenedata,"//p[@class='caption-text']/a");
+					responseXML.models += <models></models>;
+				
+					for each (var a in scenedata.div.(@class== 'popup_data_set_models').a) {
+						model = <model></model>;
+						model.model += <name>{a.text().trim()}</name>;
+						model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+						castTemp.push(a.text().trim());
+						responseXML.models.model += model;
+					}
+					responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : ""}</cast>
+					
+					for each (var a in scenedata..img) {
+						if(a.@src.toString().indexOf('expires') == -1) {
+							responseXML.images.image += <image>{a.@src.toString().replace(/thumbs\//,"")}</image>;
+						}
+					}
+					
+			
+					var desc = scenedata.div.(/popup_data_set_des/.test(@class)).p.text().toString().trim().replace(/&#039;/g, "'");
+					y.log("desc: " + desc);
+					responseXML.description += <desc>{desc}</desc>;
+					
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

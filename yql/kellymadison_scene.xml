@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+			
+				var xpath="//div[@class='ibox4']";
+				//query = y.query('select * from html where url="' + url + '" and xpath="' + xpath + '"');
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				var baseurl = 'http://www.' + url.match(/\.(.+)\./)[1] + '.com';
+				var responseXML = <scene></scene>;
+				
+				//var results = query.results;
+				function processScene(scenedata) {
+					var sceneurl = url;
+					
+					var sceneid = url.match(/\d+/);
+					responseXML.id += <id>{sceneid}</id>;
+					
+					responseXML.episode += <episode>{scenedata..div.(@class=="epnum rt").text().toString()}</episode>;
+					
+					var title = scenedata..h1[0].text().toString().replace(/\u00A0/g, ' ').replace(/\&#27;/,"'").trim();
+					
+					responseXML.title += <title>{title}</title>;
+					responseXML.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					
+					responseXML.poster += <poster>{'http:' + scenedata..video.@poster}</poster>;
+					y.log(scenedata..div.(@id == "inner-block").p[1].text());
+					
+					var releasedate = scenedata..div.(@id == "inner-block").p[1].text().toString().trim()
+					releasedate = releasedate.match(/\d{2}.\d{2}.\d{4}/)[0].toString();
+					
+					dateparts=releasedate.split('-');
+					
+					//responseXML.date += <date>{}</date>;
+					var date = new Date(dateparts[2], dateparts[0] -1, dateparts[1]);
+					
+					responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					
+					responseXML.thumbs += <thumbs></thumbs>;
+					responseXML.images += <images></images>;
+					
+					for each (var img in scenedata..img) {
+						responseXML.thumbs.thumb += <thumb>{'http:' + img.@src}</thumb>;
+						responseXML.images.image += <image>{'http:' + img.@src}</image>;
+					}
+					
+					var models = y.xpath(scenedata,"//a[contains(@href, 'models')]");
+				
+					var castTemp = [];
+					responseXML.models += <models></models>;
+				
+					for each (var a in models) {
+						model = <model></model>;
+						model.model += <name>{a.text()}</name>;
+						model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+						castTemp.push(a.text());
+						responseXML.models.model += model;
+					}
+					responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					
+
+					var description = scenedata..p.(@class=="trailer-excerpt").text().toString().trim().replace(/\&#27;/g,"'");
+
+					responseXML.description += <desc>{description}</desc>;
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

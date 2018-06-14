@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			 <key id="site" type="xs:string" paramType="variable" required="false"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'http';
+				var baseurl = scheme + '://www.pervcity.com';
+				
+				
+				var xpath = '//div[@class="boxmain_block"]';
+				var url = baseurl + '/latestscenes.php'
+				var html = y.rest(url).accept('text/html').get().response;
+				var results = y.tidy(html);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				responseXML = <scenes></scenes>;
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					//y.log(scenedata);
+
+					try {
+						var sceneurl = scenedata.a.@href.toString();
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					
+					try {
+						var releasedate = scenedata..div.(@class == "date_starcol").label.text().toString().trim();
+						var dateparts = releasedate.split('-');
+						//y.log(dateparts);
+						var date = new Date(dateparts[2], dateparts[0]-1, dateparts[1]);
+									
+						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+						scene.date = <date>{datealtstring}</date>;
+					} catch(e) { y.log('url: ' + e);}
+					
+	
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+					//break;
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

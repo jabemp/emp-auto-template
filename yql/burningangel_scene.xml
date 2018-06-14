@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+			
+				var xpath="//div[@id='main']";
+				var baseurl = 'https://www.burningangel.com';
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}	
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				var responseXML = <scene></scene>;
+
+				function processScene(scenedata) {
+					var sceneurl = url;
+					
+					try {
+					var title = scenedata..h3.(@class == "title").text().toString().replace(/\u00A0/g, ' ').trim();
+					
+					responseXML.title += <title>{title}</title>;
+					responseXML.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					} catch (e) { y.log('title: ' + e);}
+					
+					try {
+					var poster = y.xpath(scenedata,"//script[contains(text(), '.jpg')]");
+					//y.log(poster);
+					responseXML.poster += <poster>{poster.toString().match(/https:.[^"]+jpg/).toString().replace(/\\/g,"")}</poster>;
+					} catch (e) { y.log('poster: ' + e);}
+					
+					try {
+					var releasedate = scenedata..div.(@class == "updatedDate").text().toString().trim();
+					y.log(releasedate);
+					var dateparts=releasedate.split('-');
+					var date = new Date(dateparts[2], dateparts[0] - 1, dateparts[1]);
+					responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch (e) { y.log('date: ' + e);}
+					responseXML.thumbs += <thumbs></thumbs>;
+					responseXML.images += <images></images>;
+					
+					/*var id = responseXML.poster.match(/\d{5,6}/g)[1];
+					var domain = responseXML.poster.match(/[^\.]+/);
+					for (i = 1; i < 16; i++) { 
+						var imagelink = domain + '.gammacdn.com/s/movies/' + id + '/' +  id + '_01/pictures/sc_' + id + '_01_' + zeroFill(i,2) + '.jpg';
+						responseXML.images.image += <image>{imagelink}</image>;
+					}*/
+					/*
+					try {
+						var picset = scenedata..div.(@class == 'buttonHolder picturesItem lastControl');
+						if (picset) {
+							var picseturl = (picset.a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl) + picset.a.@href;
+							//responseXML.picseturl += <picseturl>{picseturl}</picseturl>;
+							
+							var picsetxpath = '//ul[@class="photoset"]/li | //span[@class="paginatorPages"]';
+							var picsetresults = y.rest(picseturl).accept('text/html').get().response;
+							if (picsetxpath) {
+								picsetresults = <results>{y.xpath(picsetresults, picsetxpath)}</results>;
+							}
+							
+							var totalpages = picsetresults..span.(@class=='paginatorPages').a.length();
+							var picsperpage = 30;
+							y.log('pages: ' + totalpages);
+							//y.log(picsetresults);
+
+							
+							var totalpicslastpage = 0;
+							if(totalpages > 1) {
+								var lastpageurltemp = picsetresults..span.(@class=='paginatorPages').a[totalpages-1].@href;
+								var lastpageurl = (lastpageurltemp.toString().substring(0, 4) == 'http' ? '' : baseurl) + lastpageurltemp;
+								y.log(lastpageurl);
+								
+								var picsetxpathlast = '//ul[@class="photoset"]/li';
+								var picsetresultslast = y.rest(lastpageurl).accept('text/html').get().response;
+								if (picsetxpathlast) {
+									picsetresultslast = <results>{y.xpath(picsetresultslast, picsetxpathlast)}</results>;
+								}
+								totalpicslastpage = picsetresultslast..li.length();
+								y.log('last page count: ' + totalpicslastpage);
+							} else {
+								picsperpage = picsetresults..li.length();
+								totalpages = 1;
+							}	
+							var totalpics = (picsperpage * totalpages) + totalpicslastpage;
+							y.log('total:' + totalpics);
+							
+							
+							if (totalpics > 0) {
+								var firstpic = picsetresults..li[0].a.img.@src.toString();
+								y.log(firstpic);
+								var fullpic = firstpic.replace(/(photo_set)/,'s/$1').replace(/\/thumbs/, '').replace(/_tb/, '');
+								y.log(fullpic);
+								//https://images04-fame.gammacdn.com/photo_set/91005/thumbs/91005_001_tb.jpg
+								//https://images03-fame.gammacdn.com/s/photo_set/91005/91005_001.jpg
+								var curlExpr=fullpic.replace(/_(001)/,'_[$1-' + zeroFill(totalpics,3) + ']');
+								y.log(curlExpr);
+								responseXML.picsetCurl += <picsetCurl>{curlExpr}</picsetCurl>;
+							}					
+							responseXML.photos += <photos></photos>;
+							for (i = 1; i <= totalpics; i++) { 
+								var imagelink = fullpic.replace(/_(001)/,'_' + zeroFill(i,3));
+								responseXML.photos.photo += <photo>{imagelink}</photo>;
+							}
+							
+							//responseXML.picseturl += <picseturl>{picseturl}</picseturl>;
+						}
+					} catch(e) {y.log('picset: ' + e);}
+					*/
+					var models = y.xpath(scenedata,"//div[@class='sceneCol sceneColActors']/a");
+				
+					var castTemp = [];
+					responseXML.models += <models></models>;
+				
+					for each (var a in models) {
+						model = <model></model>;
+						model.model += <name>{a.text()}</name>;
+						model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+						castTemp.push(a.text());
+						responseXML.models.model += model;
+					}
+					responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					
+					
+					var tags = y.xpath(scenedata,"//div[@class='sceneCol sceneColCategories']/a");
+				
+					var tagsTemp = [];
+				
+					for each (var tag in tags) {
+						tagsTemp.push(tag.text());
+					}
+					responseXML.tags += <tags>{tagsTemp.join(', ')}</tags>;
+					responseXML.description += <desc>{scenedata..div.(@class == "sceneDesc bioToRight showMore").text().toString().trim()}</desc>;
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

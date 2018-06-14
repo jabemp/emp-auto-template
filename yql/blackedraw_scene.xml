@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				function extractHostname(url) {
+					var hostname;
+					//find & remove protocol (http, ftp, etc.) and get hostname
+
+					if (url.indexOf("://") > -1) {
+						hostname = url.split('/')[2];
+					}
+					else {
+						hostname = url.split('/')[0];
+					}
+
+					//find & remove port number
+					hostname = hostname.split(':')[0];
+					//find & remove "?"
+					hostname = hostname.split('?')[0];
+
+					return hostname;
+				}
+				var scheme = 'https';
+				var baseurl = scheme + '://' + extractHostname(url);
+				var xpath = "//div[@class='content']";
+				var results;
+				var html = y.rest(url)
+				.get()
+				.response;
+				var tidyhtml = y.tidy(html);
+				if(xpath) {
+					results = y.xpath(tidyhtml, xpath);
+				}
+				
+				var responseXML = <scene></scene>;
+				
+				//var results = query.results;
+				function processScene(scenedata) {
+
+					try {					
+						var title = scenedata..div.(@class== "player-description-title").text().trim().replace(/&#39;/g,"'");
+						responseXML.title += <title>{title}</title>;
+					} catch(e) {y.log('title:' + e);}
+					
+					try {
+						var releasedate = scenedata..span.(@class == "right").span.(@class == "info").text();
+						responseXML.date = <date>{releasedate}</date>;
+						var datealt = new Date(releasedate);
+						var datealtstring = datealt.getFullYear().toString().substring(2,4) + '.' + zeroFill(datealt.getMonth() + 1,2) + '.' + zeroFill(datealt.getDate(),2);
+						responseXML.dateiso += <dateiso>{datealt.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) {y.log('date:' + e);}
+					
+					try {
+						var poster = scenedata..img.(/player-img.*transparent/gi.test(@class)).@src;
+					
+						responseXML.poster += <poster>{poster}</poster>;
+					} catch(e) {y.log('poster:' + e);}
+					
+					try {
+						var castTemp = [];
+						var models = y.xpath(scenedata,"//span[@class='player-description-detail-models']/a");
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							model = <model></model>;
+							model.model += <name>{a.text().trim()}</name>;
+							model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+							castTemp.push(a.text().trim());
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : ""}</cast>
+					} catch(e) {y.log('cast:' + e);}
+					
+					try {
+						responseXML.thumbs += <thumbs></thumbs>;
+						var thumbs = scenedata..img.(@['src'].match(/TOURPHOTOTHUMB/));
+						for each (var a in thumbs) {
+							responseXML.thumbs.thumb += <thumb>{a.@src}</thumb>;
+						}
+					} catch(e) {y.log('thumbs:' + e);}
+					
+					try {
+						responseXML.images += <images></images>;
+						var images = scenedata..div.(@class=="inner").a.(@['data-med'].match(/TOURPHOTO/));
+						for each (var a in images) {
+							responseXML.images.image += <image>{a.@['data-med'].toString()}</image>;
+						}
+					} catch(e) {y.log('images:' + e);}
+					
+					try {
+						var description = scenedata..span.(@class=="moreless js-readmore").text().toString().replace(/&#39;/g,"'");
+						responseXML.description += <desc>{description}</desc>;
+					} catch(e) {y.log('desc:' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

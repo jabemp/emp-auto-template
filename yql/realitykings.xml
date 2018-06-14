@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			 <key id="site" type="xs:string" paramType="path" required="true"/>
+		   </inputs>
+			<execute><![CDATA[      
+				var baseurl = 'http://www.realitykings.com'; 
+				
+				var sites = {
+					'40-inch-plus': '4',
+					'8th-street-latinas': '1',
+					'bad-tow-truck': '58',
+					'big-naturals': '6',
+					'big-tits-boss': '7',
+					'bikini-crashers': '8',
+					'captain-stabbin': '11',
+					'cfnm-secret': '12',
+					'cum-fiesta': '13',
+					'cum-girls': '14',
+					'dangerous-dongs': '16',
+					'euro-sex-parties': '19',
+					'extreme-asses': '20',
+					'extreme-naturals': '21',
+					'first-time-auditions': '22',
+					'flower-tucci': '24',
+					'girls-of-naked': '27',
+					'happy-tugs': '28',
+					'hd-love': '29',
+					'hot-bush': '31',
+					'in-the-vip': '32',
+					'mega-cock-cravers': '33',
+					'mike-in-brazil': '34',
+					'mike-s-apartment': '35',
+					'milf-hunter': '2',
+					'milf-next-door': '36',
+					'moms-bang-teens': '37',
+					'moms-lick-teens': '57',
+					'money-talks': '38',
+					'monster-curves': '39',
+					'no-faces': '40',
+					'pure-18': '42',
+					'real-orgasms': '43',
+					'rk-prime': '59',
+					'round-and-brown': '44',
+					'saturday-night-latinas': '45',
+					'see-my-wife': '46',
+					'sneaky-sex': '61',
+					'street-blowjobs': '47',
+					'team-squirt': '48',
+					'teens-love-huge-cocks': '53',
+					'top-shelf-pussy': '49',
+					'tranny-surprise': '50',
+					'vip-crew': '51',
+					'we-live-together': '3',
+					'wives-in-pantyhose': '52'
+				};
+				
+				if (site == "mikes-apartment") { 
+					site = "mike-s-apartment"; 
+				}
+				
+				//var url = baseurl + '/tour/videos/' + site.toLowerCase() + '/all-categories/all-time/recent/?t=' + new Date().getTime();
+				var url = baseurl + '/tour/site/view/' + sites[site.toLowerCase()] + '/' + site.toLowerCase() + '/?t=' + new Date().getTime();
+				var xpath = "//article[@class='card card--release']"; 
+
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				//var results = query.results;
+				
+				function processScene(scenedata) {
+					
+					
+					var scene = <scene></scene>;
+					try {
+						var link = scenedata.div.(@class=="card-thumb").a;
+						var sceneurl = link.@href.toString();
+						if (/join/.test(sceneurl)) { 
+							sceneid = link.@['data-trackid'].toString().match(/scene id (\d+)/)[1];
+							sceneurl = baseurl + '/tour/video/watch/' + sceneid + '/' + scenedata.a.img.@alt.match(/(.+) - (.+)/)[1].replace(/[^a-z0-9- ]/gi,'').replace(/ /g,'-').toLowerCase() + '/';
+						} else {
+							sceneid = sceneurl.match(/watch\/(\d+)/)[1];
+						}
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					try {
+						var title = scenedata.div.(@class=="card-info").p.(@class=="card-info__title").a.@title.toString().trim();
+						scene.title += <title>{title}</title>;
+					} catch(e) { y.log('title: ' + e);}
+					
+					try {
+						var releasedate = scenedata..span.(@class=="card-info__meta-date").text();
+						var datealt = new Date(releasedate);
+						var datealtstring = datealt.getFullYear().toString().substring(2,4) + '.' + zeroFill(datealt.getMonth() + 1,2) + '.' + zeroFill(datealt.getDate(),2);
+						scene.date += <date>{datealtstring}</date>;
+						scene.dateiso += <dateiso>{datealt.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) { y.log('date: ' + e);}
+					
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.article) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

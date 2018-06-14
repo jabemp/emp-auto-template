@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'https://tour.naughtyamerica.com';
+
+				var xpath = "//div[@id='content']";
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				var responseXML = <scene></scene>;
+				
+				//var results = query.results;
+				function processScene(scenedata) {
+					//y.log(scenedata);
+					
+					var releasedate = scenedata..p.(@class == "scenedate").*.text().toString().trim().replace(/Date published. /,"");
+					
+					var date = new Date(releasedate);
+					responseXML.dateiso = <dateiso>{new Date(releasedate).toISOString().substring(0,10)}</dateiso>;
+					
+					
+					responseXML.poster += <poster>{'https:'+scenedata..img.(@id=="trailer_card")[0].@src.toString()}</poster>;
+					
+					
+					//responseXML.thumbs += <thumbs></thumbs>;
+					responseXML.images += <images></images>;
+					
+					var thumbs = y.xpath(scenedata,"//div[@id='photo-set']//img");
+
+					var urlparts = responseXML.poster.split('/');
+					var urlpart = urlparts[6] + '/' + urlparts[7] + '/highres/' + urlparts[6] + urlparts[7] + 'hq.zip';
+					y.log(urlpart);
+					responseXML.photoset += <photoset>{'http://images.ancdn.com/photosets/nacontent/' +  urlpart }</photoset>;
+
+					var images = y.xpath(scenedata,"//a[contains(@href,'.jpg')]");
+					
+					var tmpimageurl = '';
+					
+					for each (var a in images) {
+						if (tmpimageurl != a.@href.toString()) {
+							var curImg = 'https:' + a.@href.toString();
+							if (/huge/.test(curImg)) {
+								var lol = responseXML.poster.toString();
+								responseXML.poster = curImg;
+								curImg = lol;
+							}
+							responseXML.images.image += <image>{curImg}</image>;
+						}
+						tmpimageurl = a.@href.toString();
+					}
+					
+					var models = y.xpath(scenedata,"//p[@class='scenepage model-name']/a[contains(@href,'/pornstar/')]");
+				
+					var castTemp = [];
+					responseXML.models += <models></models>;
+				
+					for each (var a in models) {
+						model = <model></model>;
+						model.model += <name>{a.text().trim()}</name>;
+						model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+						castTemp.push(a.text().trim());
+						responseXML.models.model += model;
+					}
+					responseXML.cast = <cast>{niceList(castTemp)}</cast>
+					
+					
+					var tags = y.xpath(scenedata,"(//div[@id='scene-info'])[1]/p/a[contains(@href,'fantasy')]");
+				
+					var tagsTemp = [];
+				
+					for each (var tag in tags) {
+						tagsTemp.push(tag.text());
+					}
+					responseXML.tags += <tags>{tagsTemp.join(', ').replace(/&#039;/g, "'")}</tags>;
+					
+					var desc = scenedata..p.(@class == "synopsis_txt").text().toString().trim().replace(/&#039;/g, "'");
+					y.log("desc: " + desc);
+					responseXML.description += <desc>{desc}</desc>;
+					
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			 <key id="time" type="xs:string" paramType="variable" required="false"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://www.sweetheartvideo.com';
+				
+				var url = baseurl + '/en/scenes/';
+				
+				if (time == 'upcoming') {
+					url = url + '/AllCategories/0/1/upcoming';
+				}
+				
+				var xpath = '//ul[@class="sceneList"]/li[div/div/a[not(contains(@href, "BTS") or contains(@href, "BONUS") or contains(@href, "Promo-Teaser"))]]';
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = y.xpath(results, xpath);
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+								
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					scenelink = scenedata.div.a;
+					//y.log(scenelink);
+					
+					try {
+						var sceneurl = scenelink.@href.toString();
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					var sceneinfo = scenedata.div.(@class == 'sceneInfo');
+					
+					try {
+						var title = sceneinfo.h3.a.text().toString().trim();
+						scene.title += <title>{title}</title>;
+						scene.titlematch += <titlematch>{title.replace(/\&/, "and").replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ").trim().toLowerCase()}</titlematch>;
+					} catch(e) { y.log('title: ' + e);}
+					
+					try {
+						//mm-dd-yyyy
+						var releasedate = sceneinfo..p.(@class == 'sceneDate').text().toString().trim();
+						var parts = releasedate.split("-");
+						var date = new Date(parts[2], parts[0] - 1, parts[1]);
+						
+						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+						scene.date += <date>{datealtstring}</date>;
+						scene.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) { y.log('date: ' + e);}
+					
+					responseXML.scenes += scene;
+				}
+				
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

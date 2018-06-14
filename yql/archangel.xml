@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+		   </inputs>
+			<execute><![CDATA[
+				var xpath = "//div[@class='item-info']";
+				var baseurl = "https://www.archangelvideo.com";
+				
+				var results = y.rest(baseurl + '/tour/categories/movies/1/latest/').accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+
+				    try {
+					
+					var link = scenedata..h3.a;
+					var sceneurl = link.@href.toString();
+					
+					scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					
+					var title = link.text().toString().replace(/\u00A0/g, ' ').trim();
+					scene.title += <title>{title}</title>;
+					scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					
+					var releasedate = scenedata..ul.(@class == 'item-meta').li[0].text().trim();
+					//y.log(releasedate);
+					var datealt = new Date(releasedate);
+					var datealtstring = datealt.getFullYear().toString().substring(2,4) + '.' + zeroFill(datealt.getMonth() + 1,2) + '.' + zeroFill(datealt.getDate(),2);
+					scene.date += <date>{datealtstring}</date>;
+					} catch (e) {
+						y.log(e);
+					}
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

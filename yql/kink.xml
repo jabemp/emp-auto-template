@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+				<key id="remoteurl" type="xs:string" paramType="variable" required="true"/>
+				<!--<key id="site" type="xs:string" paramType="variable" required="true"/>-->
+		   </inputs>
+			<execute><![CDATA[
+				var xpath="//div[@class='shoot']";
+				// and ./div/a/span[contains(@class,'" + site + "')]
+				var baseurl = 'https://www.kink.com';
+				
+				var results = y.rest(remoteurl).accept('text/html').get().response;
+
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				responseXML = <scenes></scenes>;
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+
+				    try {
+						var link = scenedata.div.(@class=="shoot-thumb-image").a;
+						var sceneurl = link.@href.toString();
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch (e) { y.log('url: ' + e);}
+					
+					try {
+						var title = scenedata..div.(@class=="shoot-thumb-title").div.a.text().toString().replace(/&#39;/g,"'");
+						scene.title += <title>{title}</title>;
+					} catch (e) { y.log('title: ' + e);}
+					
+					try {
+						var releasedate = scenedata..div.(@class=="date");
+						var date = new Date(releasedate);
+						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+						scene.date += <date>{datealtstring}</date>;
+					} catch (e) { y.log('date: ' + e);}
+					
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

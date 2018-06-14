@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+				<key id="remoteurl" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var xpath = "//ul[@id='updatesList']/li[@class='white' or @class='grey']";
+				
+				var baseurl = 'http://www.teamskeet.com';
+				
+				var results = y.rest(remoteurl).accept('text/html').get().response;
+				//y.log(results);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					
+				    try {
+						var sceneurl = scenedata.a.@href.toString();
+					
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					
+						var sitename = y.xpath(scenedata, "//a[contains(@href, '/site/')]/text()")
+						scene.site += <sitename>{sitename}</sitename>;
+					} catch (e) {
+						y.log('url:' + e);
+					}
+					try {
+					var title = scenedata.div[1].div.div[0].a.text().toString();
+					scene.title += <title>{title}</title>;
+					scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					} catch (e) {
+						y.log(e);
+					}
+					
+					try {
+					var releasedate = scenedata.div[1].div.div[0].p.strong.text().toString();
+					//09/25/2017
+					var dateparts = releasedate.split('/');
+					
+					var date = new Date(dateparts[2], dateparts[0] -1 , dateparts[1]);
+					var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+					scene.date += <date>{datealtstring}</date>;
+					
+					} catch (e) {
+						y.log(e);
+					}
+					//y.log(scene);
+					responseXML.scenes += scene;
+					
+				}
+				for each (var scene in results.li) {
+					
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

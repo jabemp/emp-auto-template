@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				//div[@class='content-page-header'] |
+				var xpath="//div[@id='trailer-player'] | //div[@class='content-page-info-wrap'] | //div[@class='container share-wrap'] | //div[@class='container download-trailer-wrap']";
+				
+				var html = y.rest(url).accept('text/html').get().response;
+				var results = y.tidy(html);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				var baseurl = 'https://tour.trueanal.com';
+				var responseXML = <scene></scene>;
+				
+
+				function processScene(scenedata) {
+					var sceneurl = url;
+					//y.log(scenedata);
+					try {
+						var title = scenedata..h2.(@class == "title")[0].text().toString().replace(/\u00A0/g, ' ').trim();
+						y.log('title pre: ' + title);
+						title = title.replace(/&#039;/g, "'");
+						y.log('title post: ' + title);
+						responseXML.title += <title>{title}</title>;
+					} catch(e) { y.log('title: ' + e);}
+					
+					try {
+						responseXML.poster += <poster>{scenedata..div.(@id == 'trailer-player').@['data-screencap']}</poster>;
+					} catch(e) { y.log('poster: ' + e);}
+					
+					try {
+						responseXML.trailer += <trailer>{scenedata..div.(@id == 'trailer-player').@['data-trailer']}</trailer>;
+					} catch(e) { y.log('trailer: ' + e);}
+					
+					try {
+						var releasedatetemp = scenedata..span.(@class == "post-date").*.text()[0];
+						y.log(releasedatetemp);
+					
+						var releasedate = releasedatetemp.toString().trim().replace(/(st|nd|rd|th)/g, '');
+						y.log(releasedate);
+						//var dateparts = releasedate.split('-');
+						
+						var date = new Date(releasedate);
+						
+						responseXML.dateiso = <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) { y.log('date: ' + e);}
+					
+					responseXML.images += <images></images>;
+					
+					try {
+						//var index = y.rest(baseurl + '/videos');
+						var sharedata = scenedata..a.(@class == 'share-button button-tumblr').@href.toString();
+						//y.log(sharedata);
+						sharedata = sharedata.match(/content=([^&]+)/)[1];
+						//y.log(sharedata);
+						var link = decodeURIComponent(sharedata);
+						//y.log(link);
+						var urlbase = link.substr(0,link.lastIndexOf('/') + 1);
+						//y.log(urlbase);
+						for (i = 1; i < 10; i++) { 
+							var imagelink = urlbase + i + '.jpg';
+							responseXML.images.image += <image>{imagelink}</image>;
+						}
+					} catch(e) {
+						y.log('images: ' + e);
+					}
+					
+					try {
+						var models = y.xpath(scenedata,"(//h4[@class='models'])[1]/a");
+				
+						var castTemp = [];
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							model = <model></model>;
+							model.model += <name>{a.text()}</name>;
+							model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+							castTemp.push(a.text());
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					} catch(e) { y.log('cast: ' + e);}
+					
+					try {
+						var descNode = y.xpath(scenedata,"//div[@class='desc']/p")[0];
+						var description = descNode.text().toString();
+						
+						responseXML.description += <desc>{description}</desc>;
+					} catch(e) { y.log('desc: ' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

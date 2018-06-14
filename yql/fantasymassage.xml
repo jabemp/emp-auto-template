@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			 <key id="remoteurl" type="xs:string" paramType="variable" required="true"/>
+			 <key id="site" type="xs:string" paramType="variable" required="false"/>
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'https://www.fantasymassage.com';
+				var xpath = "//div[contains(@class,'tlcItem playlistable_scenes_') and not(contains(a/@href, 'BTS')) and not(contains(a/@href, 'INTERVIEW'))]";
+				
+				var results = y.rest(remoteurl).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				//var results = query.results;
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					
+					var scenelink = scenedata.a;
+					var sceneurl = scenelink.@href.toString();
+					
+					scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					
+					var title = scenedata.div.(@class == "tlcDetails").div.(@class == "tlcTitle").a.text().toString().replace(/\u00A0/g, ' ').trim();
+					scene.title += <title>{title}</title>;
+					scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					
+					var releasedate = scenedata..span.(@class == "tlcSpecsDate").span.(@class == "tlcDetailsValue").text().toString().trim();
+					var dateparts = releasedate.split('-');
+					var datealt = new Date(dateparts[0], dateparts[1] -1, dateparts[2]);
+					
+					var datealtstring = datealt.getFullYear().toString().substring(2,4) + '.' + zeroFill(datealt.getMonth() + 1,2) + '.' + zeroFill(datealt.getDate(),2);
+					scene.date += <date>{datealtstring}</date>;
+
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

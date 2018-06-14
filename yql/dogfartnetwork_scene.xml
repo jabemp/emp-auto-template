@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var xpath = "//div[@class='container container-main']";
+				var domain = url.match(/\.(.+)\./)[1].toLowerCase();
+				var baseurl = 'https://www.' + domain +'.com';
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				//var results = y.tidy(html);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+
+				var responseXML = <scene></scene>;
+			
+	
+				
+				function processScene(scenedata) {
+					var sceneurl = url;
+					
+					var title = scenedata..h1.(@class=="description-title").text().toString().replace(/\u00A0/g, ' ').trim();
+					
+					responseXML.title += <title>{title}</title>;
+					responseXML.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					
+					responseXML.poster += <poster>{'http:' + scenedata..img.(@class=="col-xs-12").@src}</poster>;
+				
+					responseXML.images += <images></images>;
+					/*for each (var img in scenedata..img.(@class=='img-thumbnail')) {
+						responseXML.images.image += <image>{img.@src.toString().replace(/\/tn\//,'/pic/')}</image>;
+					}*/
+					try {
+					var picpage = scenedata..div.(@class == 'clearfix pics-container').div[0].a.@href.toString().replace(/\?.+/, "").replace(/\d+\.jpg/, "");
+					responseXML.photoset += <photoset>{baseurl + picpage}</photoset>;
+					//firstpic = baseurl + picpage.toString();
+					//y.log(firstpic);
+					//
+					//var pagination = y.xpath(scenedata, "(//ul[@class = 'basic-paginiation pagination'])[1]");
+					////y.log(pagination);
+					//var lastpagelink = y.xpath(pagination, "/ul/li[last()]/a/@href");
+					//y.log(lastpagelink);
+					//var lastpageurl = url + (lastpagelink.toString().replace(/\&.+/, ""));
+					//y.log(lastpageurl);
+					//
+					//var lastpage = y.rest(lastpageurl).accept('text/html').get().response;
+					//
+					//var lastpicurltemp = y.xpath(lastpage, "//div[@class = 'clearfix pics-container']/div[last()]/a/@href").toString().replace(/\?.+/, "");
+					//var lastpicurl = baseurl + lastpicurltemp;
+					//
+					//
+					//y.log(lastpicurl);
+					//var lastpicnum = lastpicurltemp.match(/(\d+)\.jpg/)[1];
+					//responseXML.photosetUrl += <photosetUrl>{firstpic}</photosetUrl>
+					//responseXML.photosetLast += <photosetLast>{lastpicnum}</photosetLast>
+					//y.log(lastpicnum);
+					} catch (e) { 
+						y.log('photo:' + e);
+					}
+				
+					var castTemp = [];
+					responseXML.models += <models></models>;
+				
+					for each (var a in y.xpath(scenedata, "//a[contains(@href, '/tour/girls')]")) {
+						model = <model></model>;
+						model.model += <name>{a.text().toString()}</name>;
+						model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+						castTemp.push(a.text().toString());
+						responseXML.models.model += model;
+					}
+					responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					
+					var tags = y.xpath(scenedata,"//p[@class='categories']").text().toString().split(",");
+					var tagsTemp = [];
+				
+					for each (var tag in y.xpath(scenedata, "//a[contains(@href, '/tour/categories/')]")) {
+						tagsTemp.push(tag.text().toString().trim());
+					}
+					responseXML.tags += <tags>{tagsTemp.join(', ')}</tags>;
+					
+					var descNode = y.xpath(scenedata,"//div[contains(@class,'description')]");
+					responseXML.description += <desc>{descNode.text().toString().trim()+descNode.span.text().toString().trim()}</desc>;
+					
+				}
+				
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

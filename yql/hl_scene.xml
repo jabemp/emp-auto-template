@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				function extractHostname(url) {
+					var hostname;
+					//find & remove protocol (http, ftp, etc.) and get hostname
+
+					if (url.indexOf("://") > -1) {
+						hostname = url.split('/')[2];
+					}
+					else {
+						hostname = url.split('/')[0];
+					}
+
+					//find & remove port number
+					hostname = hostname.split(':')[0];
+					//find & remove "?"
+					hostname = hostname.split('?')[0];
+
+					return hostname;
+				}
+				var scheme = 'https';
+				var baseurl = scheme + '://' + extractHostname(url);
+				
+				var xpath="//div[@class='trailer-scene-info'] | //div[@id='trial-thumb']/img"
+				
+				
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				
+				
+				var responseXML = <scene></scene>;
+				
+				function processScene(scenedata) {
+					
+					//y.log(scenedata);
+					
+					try {
+						var title = scenedata.div.h3.text().toString().replace(/\u00A0/g, ' ').trim();
+						responseXML.title += <title>{title}</title>;
+					} catch(e) {y.log('title:' + e);}
+					
+					try {
+						var poster = scenedata.img.@src.toString().replace(/\?.*/g,'');
+						responseXML.poster += <poster>{scheme + ':' + poster}</poster>;
+					} catch(e) {y.log('poster:' + e);}
+					
+					try {
+						var releasedate = scenedata..p.(@class == 'small').abbr.text().toString().substring(0,10);
+						//y.log(releasedate);
+						var parts = releasedate.split("-");
+						var date = new Date(parts[0], parts[1] - 1, parts[2]);
+
+						responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) {y.log('date:' + e);}
+					
+					try {
+						responseXML.images += <images></images>;
+						var urltemplate = responseXML.poster.substring(0, responseXML.poster.lastIndexOf("/") + 1);;
+						
+						for(var i = 2;i < 17; i=i+3) {
+							responseXML.images.image += <image>{urltemplate + zeroFill(i,3) + '.jpg'}</image>;
+						}
+					} catch(e) {y.log('images:' + e);}
+					
+					try {
+						var models = y.xpath(scenedata,"//a[contains(@href, '/girls/')]");
+						var castTemp = [];
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							model = <model></model>;
+							model.model += <name>{a.text()}</name>;
+							model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+							castTemp.push(a.text());
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					} catch(e) {y.log('models:' + e);}
+					
+					
+					try {
+						responseXML.description += <desc>{'TBD'}</desc>;
+					} catch(e) {y.log('desc:' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

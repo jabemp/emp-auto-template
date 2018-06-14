@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'https://www.blackedraw.com';
+				
+				var url   = baseurl + '/videos';
+	
+				var xpath = "//article[@class='videolist-panel-item']";
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				//var results = query.results;
+				
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					
+					scenelink = scenedata.a;
+					try {
+					
+						var sceneurl = scenelink.@href.toString();
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					try {
+						scene.title += <title>{scenelink.@title.toString()}</title>;
+					} catch(e) { y.log('title: ' + e);}
+					
+					try {
+						var releasedate = scenedata.header.(@class== "videolist-panel-caption").div.(@class == "videolist-panel-caption-video-info").ul.li[0].span.(@class == "videolist-panel-caption-video-info-data").text();
+						var datealt = new Date(releasedate);
+						var datealtstring = datealt.getFullYear().toString().substring(2,4) + '.' + zeroFill(datealt.getMonth() + 1,2) + '.' + zeroFill(datealt.getDate(),2);
+						
+						scene.datealt += <date>{datealtstring}</date>;
+						scene.dateiso += <dateiso>{datealt.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) { y.log('date: ' + e);}
+					responseXML.scenes += scene;
+				}
+				
+				for each (var scene in results.article) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

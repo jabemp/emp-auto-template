@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+				<key id="time" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'https://www.burningangel.com';
+				var xpath = "//div[contains(@class,'tlcItem playlistable_scenes') and not(contains(a/@href, 'BTS')) and not(contains(a/@href, 'INTERVIEW'))]";
+				
+				var url = baseurl + '/en/videos/' + (time === 'upcoming' ? 'upcoming' : 'updates') + '/1/Category/0/AllGirls/0';
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					
+					var scenelink = scenedata.a;
+					var sceneurl = scenelink.@href.toString();
+					scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					
+					var title = scenedata.div.(@class == "tlcDetails").div.(@class == "tlcTitle").a.text().toString().replace(/\u00A0/g, ' ').trim().replace(/, Scene.+/, '');
+					scene.title += <title>{title}</title>;
+					scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

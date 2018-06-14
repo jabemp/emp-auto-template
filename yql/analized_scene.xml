@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://analized.com';
+				
+				var xpath="//div[@class='content-wrapper'] | (//div[contains(@class,'update animation-element bounce-up')])[1]/a/img | //script[contains(text(),'trailer')]"; 
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				//y.log(results);
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				var responseXML = <scene></scene>;
+				
+				function processScene(scenedata) {
+					var sceneurl = url;
+					//y.log(scenedata);
+					
+					try {
+						var title = scenedata..div.(@class=='title_bar trailer_title').text().toString().trim();
+						responseXML.title += <title>{title}</title>;
+					} catch(e) {y.log('title:' + e);}
+					
+					try {
+						var indexurl = 'https://analized.com/categories/movies.html';
+						var episodexpath = '//a[@href="' + url + '"]/../img';
+						//y.log('fetching ' + indexurl);
+						var scenes = y.rest(indexurl).accept('text/html').get().response;
+						//y.log(scenes);
+						var sceneinfo = <results>{y.xpath(scenes, episodexpath)}</results>;
+						//y.log(sceneinfo);
+						
+						var poster = sceneinfo.img.@['src0_1x'].toString();
+						//var poster = sceneinfo.img.@['src0_1x'].toString();
+						responseXML.poster += <poster>{poster}</poster>;
+					} catch(e) {y.log('poster:' + e);
+						var poster2 = scenedata.img.@['src0_1x'].toString();
+						responseXML.poster += <poster>{poster2}</poster>;
+					}
+					
+					try {
+						var script = scenedata..script.toString();
+						var trailerdata = script.match(/https:.[^"]+/);
+						responseXML.trailer += <trailer>{trailerdata[0]}</trailer>;
+					} catch(e) {y.log('trailer:' + e);}
+					
+					try {
+						var releasedate = scenedata..span.(@['data-dateadded']).@['data-dateadded'].toString();
+						//y.log(releasedate);
+						var parts = releasedate.split("-");
+						var date = new Date(parts[0], parts[1] - 1, parts[2]);
+
+						responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) {y.log('date:' + e);}
+					
+					try {
+						var models = y.xpath(scenedata,"//span[@class='update_models']/a");
+						var castTemp = [];
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							model = <model></model>;
+							model.model += <name>{a.text()}</name>;
+							model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+							castTemp.push(a.text());
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp.reverse()) : "" }</cast>;
+						
+					} catch(e) {y.log('models:' + e);}
+					
+					try {
+						var tags = y.xpath(scenedata,"//a[contains(@href,'/categories/')]");
+				
+						var tagsTemp = [];
+				
+						for each (var tag in tags) {
+							tagsTemp.push(tag.text());
+						}
+					responseXML.tags += <tags>{tagsTemp.join(', ')}</tags>;
+					} catch(e) {y.log('tags:' + e);}
+					
+					try {
+						var descNode = y.xpath(scenedata,"//div[@class='text']/p");
+						var description = "";
+						i = 0;
+						for each(var child in descNode.*) {
+							var tmp = child.toString().trim();
+							if(tmp != "" && i > 0) {
+								description += tmp + '\n\n'; 
+							}
+							i++;
+						}
+						responseXML.description += <desc>{description}</desc>;
+					} catch(e) {y.log('desc:' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

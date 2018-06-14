@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'https://tour.swallowed.com';
+				var xpath = "//div[@class='row']/div[@class='col-sm-12']";
+				
+				url = baseurl + '/videos';
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				//y.log(results);
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				//y.log(results);
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					
+					//y.log(scenedata);
+					var link = scenedata..h3.a;
+					
+					try {
+					var sceneurl = link.@href.toString();
+					
+					scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					try {
+					var title = link.text().toString().replace(/\u00A0/g, ' ').trim().replace(/&#039;/g, "'");
+					scene.title += <title>{title}</title>;
+					} catch(e) { y.log('title: ' + e);}
+					
+					try {
+					var releasedatetemp = scenedata..time.text();
+					//y.log(releasedatetemp);
+				
+					var releasedate = releasedatetemp.toString().trim().replace(/(st|nd|rd|th)/g, '');
+					//y.log(releasedate);
+
+					var date = new Date(releasedate);
+					
+					var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+					scene.date += <date>{datealtstring}</date>;
+					} catch(e) { y.log('date: ' + e);}
+					
+					responseXML.scenes += scene;
+				}
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

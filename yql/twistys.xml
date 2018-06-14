@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+				<key id="time" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://www.twistys.com';
+				
+				var url = baseurl + '/tour/search/videos/bydate/'+ time + '/all/all/';
+
+				var xpath = '//div[@class="ui-info-box"]';
+
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				responseXML = <scenes></scenes>;
+								
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					//y.log(scenedata);
+					
+					try {
+						var sceneurl = scenedata.div.(@class == 'info-box-inner-left').h2.a.@href;
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					try {
+						var title = scenedata.div.(@class == 'info-box-inner-left').h2.a.text().toString().trim();
+						scene.title += <title>{title}</title>;
+						scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					} catch(e) { y.log('title: ' + e);}
+					
+					try {
+						//09-22-17
+						var releasedate = scenedata.div.(@class == 'info-box-inner-right').div.(@class == 'info-box-date').text().toString().trim();
+						//y.log(releasedate);
+						var date = new Date(releasedate);
+						
+						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+						scene.date += <date>{datealtstring}</date>;
+					} catch(e) { y.log('date: ' + e);}
+					
+					responseXML.scenes += scene;
+				}
+				
+				for each (var scene in results.div) {
+					processScene(scene);
+					//break;
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

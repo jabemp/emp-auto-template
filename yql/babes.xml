@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			 <key id="site" type="xs:string" paramType="path" required="true"/>
+			 <key id="time" type="xs:string" paramType="path" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'https://www.babes.com';
+				
+				var url = baseurl + '/tour/videos/' + (time == 'upcoming' ? 'all-sites' : site) + '/all/all/' + time + '/all/';
+				
+				//upcoming, alltime
+				
+				var xpath = "//li[@class='release-wrapper type-video scene' and contains((.//a[@class='release-site notracking'])[1]/@href,'/" + site +"/')]";
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				
+				function processScene(scenedata) {
+					//y.log(scenedata);
+					var scene = <scene></scene>;
+					
+					//var sitename = scenedata.div.(@class == "release-information").div.(@class == "clearfix").a.text().toString().trim();
+					//scene.site += <site>{sitename}</site>;
+				
+					var sceneurl = scenedata.a.@href.toString();
+					scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl + '/'}</url>;
+					//var sceneid = sceneurl.match(/\d{3,5}/)[0];
+					//scene.id += <id>{sceneid}</id>;
+					
+					var title = scenedata.a.@title.toString().replace(/\u00A0/g, ' ').trim();
+					scene.title += <title>{title}</title>;
+					scene.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					
+					var releasedate = scenedata..time.(@class == "release-date").text();
+					var date = new Date(releasedate);
+					var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+
+					scene.date = <date>{datealtstring}</date>;
+				
+					responseXML.scenes += scene;
+				}
+				
+				for each (var scene in results.li) {
+					processScene(scene);
+				}
+
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>

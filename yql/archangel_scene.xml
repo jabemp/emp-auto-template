@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://www.archangelvideo.com';
+				
+				var xpath="//h4 | //img[@id='set-target-486' and @height='787'] | //div[@class ='item-episode'] | //div[@class= 'item-images']/ul/li/a/img";
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				var responseXML = <scene></scene>;
+				
+				function processScene(scenedata) {
+					var sceneurl = url;
+					//y.log(scenedata);
+					
+					try {
+						var title = scenedata..h4.a[0].text().toString().replace(/\u00A0/g, ' ').trim();
+						responseXML.title += <title>{title}</title>;
+					} catch(e) {y.log('title:' + e);}
+					
+					try {
+						var poster = scenedata.img[0].@src0_1x.toString();
+						//scenedata.script.toString().match(/poster="(.[^"]+)/)[1].toString().replace(/\\/g,"");
+						responseXML.poster += <poster>{baseurl + poster}</poster>;
+					} catch(e) {y.log('poster:' + e);}
+					
+					try {
+						var releasedate = scenedata..ul.(@class == 'item-meta').li[0].text().trim();
+						//y.log(releasedate);
+						var datealt = new Date(releasedate);
+
+						responseXML.dateiso += <dateiso>{datealt.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) {y.log('date:' + e);}
+					
+					responseXML.thumbs += <thumbs></thumbs>;
+					responseXML.images += <images></images>;
+					
+					try {
+					var id = responseXML.poster.match(/([0-9]{2})\/([0-9]{2})/g)[0].split('/');
+					for (i = 1; i <= 6; i++) {
+			
+						var imagelink = baseurl + '/tour/content/contentthumbs/' + id[0] + '/' +  zeroFill((parseInt(id[1], 10) + i),2) + '/' + id[0] + '' + zeroFill((parseInt(id[1], 10) + i),2) + '-1x.jpg';
+						responseXML.images.image += <image>{imagelink}</image>;
+					}
+					} catch(e) {
+						y.log('images: ' + e);
+					}
+					
+					try {
+						var models = y.xpath(scenedata,"//h5/a");
+						var castTemp = [];
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							model = <model></model>;
+							model.model += <name>{a.text()}</name>;
+							model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+							castTemp.push(a.text());
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					} catch(e) {y.log('models:' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
