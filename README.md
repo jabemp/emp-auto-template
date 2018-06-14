@@ -27,11 +27,13 @@ Syntax: `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.X
 If core variables are misconfigured, the script should display an error message about the problem and exit. Also, check logfile produced in your temp-folder. If second paramter `url` is supplied, any episode matching is skipped and the url will be used directly.
 
 ### Custom site handling
+Scripts that matches `<network>.sh` or `<sitename>_sh` will be included into the main script. These scrips may override or contain custom functions to modify progam behaviour.
+
 #### Downloading images before uploading
 Some paysites have query parameters in their image urls for a given scene, usually due to content protection measurements. The jerking image host does not support to load such url's directly, so instead they must be downloaded to your temporary folder first. To enable this functionality include variable `dlimages="1"` and it will be handled automatically.
 
 #### Custom BB-code templates
-To make network or site specific templates, please follow the following naming convention: `<network>_template.txt` or  `<sitename>_template.txt` Note: filenames must be all lower case.
+To make network or site specific templates, please follow the following naming convention: `<network>_template.txt` or  `<sitename>_template.txt` Note: filenames must be all lower case. All templates should be stored in the `templates` folder.
 
 #### Overriding functions
 Some functions in `corefuncs.sh` are encouraged to be overridden by a custom site config. These are:
