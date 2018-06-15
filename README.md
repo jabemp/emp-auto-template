@@ -35,6 +35,9 @@ Some paysites have query parameters in their image urls for a given scene, usual
 #### Custom BB-code templates
 To make network or site specific templates, please follow the following naming convention: `<network>_template.txt` or  `<sitename>_template.txt` Note: filenames must be all lower case. All templates should be stored in the `templates` folder.
 
+#### Add more technical media info properties
+See script `scripts/mediainfofuncs.sh` on how to extract more technical properties from the mediainfo report xml.
+
 #### Overriding functions
 Some functions in `corefuncs.sh` are encouraged to be overridden by a custom site config. These are:
 * `preMergeTemplate`
@@ -48,4 +51,43 @@ Here you can modify the input parameters for an YQL request to identify your epi
 - Fetch html from sites the require cookie and certain headers to be set.
 You can then store the result on a public folder so that YQL can fetch the end result on your web server.
 
+### Adding tables for new sites
+Documentation on how to develop new custom tables:
+https://developer.yahoo.com/yql/guide/dev-external_tables.html
+A custom table contains javascript code to parse html and build an xml response back with library E4X: https://developer.mozilla.org/en-US/docs/Archive/Web/E4X/Processing_XML_with_E4X
 
+In order to add support for new site, you need two files, one yql table to list a site's episodes `<sitename>.xml` and one table to extract episode metadata (`<sitename>_scene.xml`)
+The index table should return an xml strcture like this:
+```
+<results>
+    <scene>
+      <url>http://www.kinkysite.com/videos/ep/1234</url>
+      <title>Stepmom Fantasies</title>
+      <date>17.10.21</url>
+    </scene>
+    <scene>
+    ...
+    </scene>
+</results>
+```
+The where-clause (ex: `select * from index where date = '17.10.21'`) will hopefully narrow down the `scene`-list down to 1. This means we have a match between release and episode. It is also possible to match on title in case the episode list does not provide dates.
+
+Here is an example with output from YQL response from a `<sitename>_scene.xml`:
+```
+<results>
+  <scene>
+    <title>Stepmom Fantasies</title>
+    <dateiso>2017-10-21</dateiso>
+    <poster>http://www.kinkysite.com/videos/ep/1234/cover.jpg</poster>
+    <images>
+      <image>http://www.kinkysite.com/videos/ep/1234/preview1.jpg</image>
+      <image>http://www.kinkysite.com/videos/ep/1234/preview2.jpg</image>
+    </images>
+    <cast>Cory Hunter, Mike Black &amp; Stephanie Swift</cast>
+    <tags>Threesome, BJ, Hardcore</tags>
+    <desc>Stepmom Cory catches her step daughter giving sloppy head to her bf, she decides to join in...</desc>
+  </scene>
+</results>
+```
+
+Please see existing custom tables to various sites as examples on how to develop your own.
