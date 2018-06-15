@@ -27,7 +27,7 @@ Syntax: `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.X
 If core variables are misconfigured, the script should display an error message about the problem and exit. Also, check logfile produced in your temp-folder. If second paramter `url` is supplied, any episode matching is skipped and the url will be used directly.
 
 ### Custom site handling
-Scripts that matches `config/<network>.sh` or `config/<sitename>.sh` will be included into the main script. These scrips may override or contain custom functions to modify progam behaviour. Site specific scripts will take presedence over network specific scripts.
+Scripts that matches `config/<network>.sh` or `config/<sitename>.sh` will be included into the main script. These scrips may override or contain custom functions to modify progam behaviour. Site specific scripts will take presedence over network specific scripts. See existing custom scripts in the `config` folder for examples.
 
 #### Downloading images before uploading
 Some paysites have query parameters in their image urls for a given scene, usually due to content protection measurements. The jerking image host does not support to load such url's directly, so instead they must be downloaded to your temporary folder first. To enable this functionality include variable `dlimages="1"` and it will be handled automatically.
