@@ -112,30 +112,6 @@ function createTemplate() {
 function checkLog() {
 	:
 }
-#function addDupeCheckConfig() {
-#	echo "$1" >> "$dupecheckconfig"
-#}
-#function dupeCheck() {
-#	addDupeCheckConfig "-L"
-#	addDupeCheckConfig "--trace-ascii $tempfolder/${outbasefile}_dupecheck_trace.log"
-#	addDupeCheckConfig "url=$empuploadurl"
-#	addDupeCheckConfig "-b $empcookiefile"
-#	addDupeCheckConfig "-c $empcookiefile"
-#	addDupeCheckConfig "-F submit=true"
-#	authkey=$(getAuthKey)
-#	addDupeCheckConfig "-F auth=$authkey"
-#	addDupeCheckConfig "-F file_input=@${torrentfile};type=application/x-bittorrent"
-#	addDupeCheckConfig "-F category=$category"
-#	addDupeCheckConfig "-F \"checkonly=check for dupes\""
-#	
-#	local html="$tempfolder/${outbasefile}_dupecheck.html"
-#	curl -s -K "$dupecheckconfig" -o "$html"
-#	if grep -q 'The torrent contained one or more possible dupes' "$html" ; then
-#		echo "1"
-#	else
-#		echo "0"
-#	fi
-#}
 
 function upload() {
 	writelog "Creating upload config..."
