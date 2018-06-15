@@ -89,7 +89,7 @@ function downloadURLPhantomJS() {
 	writelog "cURL: $cmdpjs"
 	httpstatus=$($cmdpjs)
 	writelog "HTTP status: ${httpstatus}"
-	echo "http://${publicfolder}/${tempfile}"
+	echo "${publicaddress}/${tempfile}"
 }
 
 #params: 1= url, 2=cookiedata
@@ -119,7 +119,7 @@ function downloadURL() {
 	fi
 	httpstatus=$($cmd)
 	writelog "HTTP status: ${httpstatus}"
-	echo "http://${publicfolder}/${tempfile}"
+	echo "${publicaddress}/${tempfile}"
 }
 
 function getUrlFromSceneList() {
