@@ -25,7 +25,7 @@
 ### Usage
 Syntax: `./maketemplate.sh <path to release folder> [url to episode / scene]`
 Example: `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.XXX.1080p.MP4-GRP`
-If core variables are misconfigured, the script should display an error message about the problem and exit. Also, check logfile produced in your temp-folder. If second paramter `url` is supplied, any episode matching is skipped and the url will be used directly.
+If core variables are misconfigured, the script should display an error message about the problem and exit. If second paramter `url` is supplied, any episode matching is skipped and the url will be used directly.
 
 ### Logging
 A log file will be produced in your configured temp folder with name `<network>_<sitename>.log` or `<sitename>.log`
