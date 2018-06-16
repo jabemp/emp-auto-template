@@ -26,6 +26,9 @@
 Syntax: `./maketemplate.sh ~/downloads/SomeAdultPaysite.18.01.01.Hot.Performer.XXX.1080p.MP4-GRP [url to episode / scene]` 
 If core variables are misconfigured, the script should display an error message about the problem and exit. Also, check logfile produced in your temp-folder. If second paramter `url` is supplied, any episode matching is skipped and the url will be used directly.
 
+### Logging
+A log file will be produced in your configured temp folder with name `<network>_<sitename>.log` or `<sitename>.log`
+
 ### Custom site handling
 Scripts that matches `config/<network>.sh` or `config/<sitename>.sh` will be included into the main script. These scrips may override or contain custom functions to modify progam behaviour. Site specific scripts will take presedence over network specific scripts. See existing custom scripts in the `config` folder for examples.
 
@@ -62,7 +65,8 @@ The index table should return an xml strcture like this:
 <results>
     <scene>
       <url>http://www.kinkysite.com/videos/ep/1234</url>
-      <title>Stepmom Fantasies</title>
+      <title>A Stepmom's Secrets</title>
+      <titlematch>a stepmoms secrets</titlematch>
       <date>17.10.21</url>
     </scene>
     <scene>
@@ -70,13 +74,13 @@ The index table should return an xml strcture like this:
     </scene>
 </results>
 ```
-The where-clause (ex: `select * from index where date = '17.10.21'`) will hopefully narrow down the `scene`-list down to 1. This means we have a match between release and episode. It is also possible to match on title in case the episode list does not provide dates.
+The where-clause (ex: `select * from index where date = '17.10.21'`) in the query will hopefully narrow down the `scene`-list down to 1. This means we have a match between release and episode. It is also possible to match on title (from the title in the release name) agains element `titlematch` in the xml in case the episode list does not provide dates.
 
 Here is an example with output from YQL response from a `<sitename>_scene.xml`:
 ```
 <results>
   <scene>
-    <title>Stepmom Fantasies</title>
+    <title>A Stepmom's Secrets</title>
     <dateiso>2017-10-21</dateiso>
     <poster>http://www.kinkysite.com/videos/ep/1234/cover.jpg</poster>
     <images>
