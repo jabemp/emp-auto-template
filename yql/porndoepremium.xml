@@ -13,12 +13,13 @@
 				
 				var url = baseurl + '/network/' + site;
 				
-				var xpath = '(//div[contains(@class,"videos-listing")])[1]';
+				var xpath = '(//div[contains(@class,"videos-listing")])[1]/div[@class="item-wrap"]';
 				
 				var results = y.rest(url).accept('text/html').get().response;
 				if (xpath) {
 					results = y.xpath(results, xpath);
 				}
+y.log(results);
 				var niceList = function(array, join, finalJoin) {
 					if (array.length == 1) return array[0];
 					var arr = array.slice(0), last = arr.pop();
