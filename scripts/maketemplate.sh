@@ -39,9 +39,6 @@ fi
 . "${scriptsfolder}/keyval.sh"
 . "${scriptsfolder}/yql.sh"
 
-#is picset included? will be reflected in torrent title. Should be overridden in custom config
-picsetincluded="0"
-
 if [ "$#" -lt 1 ]; then
     echo "Missing parameters, must supply <input directory path>"
     exit 1
