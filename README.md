@@ -1,14 +1,14 @@
 ### Features
-* Matches scene release and episode metadata using YQL custom tables.
-* Unpacks release.
+* Matche scene release and episode metadata using YQL Open Data Tables.
+* Unrar release.
 * Create screens (contact sheet) of media file.
-* Uploads images to jerking image host.
+* Upload images to jerking image host.
 * Create mediainfo report.
-* Adds and cleans tags based on custom regexes.
-* Creates torrent file.
-* Supports different templates for different sites by site name convention.
-* Supports custom site handling (create gif cover, add photo set etc).
-* Uploads description as a private template (default) or direct upload.
+* Add and clean tags based on custom regexes.
+* Create torrent file.
+* Support for different templates for different sites by site name convention.
+* Support for custom site handling (create gif cover, add photo set etc).
+* Upload description as a private template with title, tags and cover (default) or direct upload.
 
 ### Prerequisites
 * Linux environment with bash v4+, [xmllint](http://www.xmlsoft.org/downloads.html) and [mediainfo](https://mediaarea.net/en/MediaInfo).
@@ -17,7 +17,7 @@
 
 ### Installation
 * Download and extract, make sure folder structure is preserved. 
-* Open `config/settings.cfg` and review the variables needed. 
+* Open `config/settings.cfg` and review the variables needed and their meaning.
 * Make sure `scripts/maketemplate.sh` and `scripts/jerking_uploader.py` are executable: `chmod u+x <file>`.
 * You need a torrent create tool, the current implementation assumes you are using this tool : https://bitbucket.org/rsnitsch/py3createtorrent/downloads/. To use something different, make the necessary changes in `createtorrent.sh`.
 * To create screens you need Movie thumbnailer: http://moviethumbnail.sourceforge.net/ You will also need `tahomabd.ttf` font file, find it on Google. Put this font file in your mtn folder. (If you need 4K support use this instead https://github.com/thetmk/mtn/releases/tag/0.1 ) To use a total different tool, make the necessary changes in `createscreens.sh`
@@ -40,7 +40,7 @@ Some paysites have query parameters in their image urls for a given scene, usual
 To make network or site specific templates, please follow the following naming convention: `<network>_template.txt` or  `<sitename>_template.txt` Note: filenames must be all lower case. All templates should be stored in the `templates` folder.
 
 #### Add more technical media info properties
-See script `scripts/mediainfofuncs.sh` on how to extract more technical properties from the mediainfo report xml.
+See script `scripts/mediainfofuncs.sh` on how to extract more technical properties from the mediainfo report xml and assign them to global variables.
 
 #### Overriding functions
 Some functions in `corefuncs.sh` are encouraged to be overridden by a custom site config. These are:
@@ -56,7 +56,7 @@ Here you can modify the input parameters for an YQL request to identify your epi
 You can then store the result on a public folder so that YQL can fetch the end result on your web server.
 
 ### Adding tables for new sites
-Documentation on how to develop new custom tables:
+Documentation on how to develop YQL Open Data Tables:
 https://developer.yahoo.com/yql/guide/dev-external_tables.html
 A custom table contains javascript code to parse html and build an xml response back with library E4X: https://developer.mozilla.org/en-US/docs/Archive/Web/E4X/Processing_XML_with_E4X
 
