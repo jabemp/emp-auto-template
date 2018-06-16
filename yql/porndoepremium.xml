@@ -13,7 +13,7 @@
 				
 				var url = baseurl + '/network/' + site;
 				
-				var xpath = '(//div[@class="videos-listing "])[1]';
+				var xpath = '(//div[contains(@class,"videos-listing")])[1]';
 				
 				var results = y.rest(url).accept('text/html').get().response;
 				if (xpath) {
