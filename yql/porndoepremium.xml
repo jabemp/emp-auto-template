@@ -54,7 +54,7 @@ y.log(results);
 					
 					try {
 						//mm-dd-yyyy
-						var releasedate = scenedata..span.(@class == 'item-stat date').span.(@class == 'txt').text().toString().trim();
+						var releasedate = scenedata..span.(@class == 'v-stats').span.(@class == 'v-stat')[0].span.(@class == 'txt').text().toString().trim();
 						//01.04.18
 						var parts = releasedate.split(".");
 						var date = new Date(2000 + parseInt(parts[2],10), parts[1] - 1, parts[0]);
