@@ -30,6 +30,21 @@ If core variables are misconfigured, the script should display an error message 
 ### Logging
 A log file will be produced in your configured temp folder with name `<network>_<sitename>.log` or `<sitename>.log`
 
+### Tagging
+Cast will be automatically added as tags, as well as sitename domin (`<sitename>.com`) and network domain (`<network>.com`) if is a subsite of a network.
+You can add static tags for specific sites in `tags_sites.txt`, each site on a new line.
+Syntax: `<sitename>=tag1 tag2 tag3 etc`. Each tag separated by space.
+
+The same goes for actors/performers. You can add static tags for specific sites in `tags_actors.txt`, each site on a new line. Syntax: `actor.name=tag1 tag2 tag3 etc`. Each tag separated by space.
+
+Resolution height is also added automatically as `<pixel height>p`
+You can also add tags for the following properties:
+* Media file extension by setting variable `addExtensionAsTag` = 1.
+* Date by setting `addDateAsTag` = 1, see `settings.cfg` for more info about date format.
+* FPS by setting `addFpsAsTag` = 1. This switch is also dependant on values in variable `fpsList`. By default, only 60fps will be used. When media file FPS is extracted from the mediainfo report, this number is rounded to nearest integer.
+
+Tags will then be split into an array and cleaned. Each tag is trimmed and non alpha-chars are replaced with a dot. Ampersand (&) is replace with the word 'and'. Each tag will be processed by a sed script named `tagfix.txt`, followed by network specific rules in `tagfix_<network>.txt` and site specific rules in `tagfix_<sitename>.txt`. In the end, duplicates are removed, lower cased and sorted alphabetically.
+
 ### Custom site handling
 Scripts that matches `config/<network>.sh` or `config/<sitename>.sh` will be included into the main script. These scrips may override or contain custom functions to modify progam behaviour. Site specific scripts will take presedence over network specific scripts. See existing custom scripts in the `config` folder for examples.
 
