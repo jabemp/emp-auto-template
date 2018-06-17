@@ -90,7 +90,7 @@
 					responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
 					
 					
-					var tags = y.xpath(scenedata,"//a[contains(@class,'wptag')]");
+					var tags = y.xpath(scenedata,"//a[contains(@class,'wptag') and contains(@href,'category')]");
 					var tagsTemp = [];
 				
 					for each (var tag in tags) {
