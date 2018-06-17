@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://www.familystrokes.com';
+				
+				var xpath="//div[@class='scenewrapper']"; 
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				//y.log(results);
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				var responseXML = <scene></scene>;
+				
+				function processScene(scenedata) {
+					var sceneurl = url;
+					//y.log(scenedata);
+					
+					try {
+						var title = scenedata..div.(@class=='title')..span.(@class == 'd-inline-block').text().toString().trim();
+						responseXML.title += <title>{title}</title>;
+					} catch(e) {y.log('title:' + e);}
+					
+					try {
+						
+						responseXML.poster += <poster>{scenedata..video.(@id = 'preview').@poster}</poster>;
+					} catch(e) {y.log('poster:' + e);
+					}
+					
+					try {
+					var poster = responseXML.poster.toString();
+						poster.substr(0, poster.lastIndexOf('/')+1);
+					} catch(e) {
+						y.log('images: ' + e);
+					}
+					try {
+						var trailer = scenedata..script[7].toString().match(/(https:\/\/fs-dl.[^"]+)/)[1];
+						
+						responseXML.trailer += <trailer>{(trailer.substring(0, 4) == 'http' ? '' : 'https:') + trailer}</trailer>;
+					} catch(e) {y.log('trailer: ' + e); }
+					
+					try {
+						var releasedate = scenedata..div.(@class == 'scene-date').toString();
+						//y.log(releasedate);
+						var date = new Date(releasedate);
+
+						responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) {y.log('date:' + e);}
+					
+					try {
+						var models = y.xpath(scenedata,"//div[@class='starring']/span");
+						var castTemp = [];
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							model = <model></model>;
+							model.model += <name>{a.text()}</name>;
+							castTemp.push(a.text());
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp.reverse()) : "" }</cast>;
+						
+					} catch(e) {y.log('models:' + e);}
+					
+					
+					try {
+						var description = scenedata..div.(@class=='scene-story').text().toString().trim();
+						responseXML.description += <desc>{description}</desc>;
+					} catch(e) {y.log('desc:' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
