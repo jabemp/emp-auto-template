@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+			
+				var xpath="//span[@class='wp-title videotitle'] | (//div[@class='col-lg-6 col-sm-6'])[1]/span[1] | //span[@class='featuring-modelname model'] | //div[@class='tags categories'] | //div[@class='video-player'] | //div[@class='row tourpreviewimages'] | //div[@class = 'video-description'] | //a[contains(@href, '/photo/gallery/')]"
+
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				var baseurl = 'https://brattysis.com';
+				var responseXML = <scene></scene>;
+				
+				
+				function processScene(scenedata) {
+					//y.log(scenedata);
+					var sceneurl = url;
+					
+					//var urlparts = url.split('/');
+					//var urltitle = urlparts[urlparts.length - 1].replace(/-/g,'_');
+					
+					try {
+					var title = scenedata.span[0].text().toString().replace(/\u00A0/g, ' ').replace(/- S\d{1,2}:E\d{1,2}/, "").trim();
+					
+					responseXML.title += <title>{title}</title>;
+					responseXML.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
+					} catch(e) { y.log('title: ' + e); }
+					
+					var poster = scenedata.div.(@class=='video-player').img.@src.toString();
+					responseXML.poster += <poster>{(poster.substring(0, 5) == 'http:' ? '' : 'http:') + poster}</poster>;
+					
+					try {
+						var releasedate = scenedata.span[1].text().toString().trim();
+						y.log(releasedate);
+						var date = new Date(releasedate);
+						responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) { y.log('date: ' + e); }
+					
+					responseXML.thumbs += <thumbs></thumbs>;
+					responseXML.images += <images></images>;
+					
+					urlparts = responseXML.poster.toString().split('/').filter(function(word){
+					  return word.length > 0;
+					});
+
+					var baseurl = urlparts.slice(1,4).join('/');
+					
+					if (scenedata.a.length() > 0) {
+					for (i = 1; i <= 16; i++) { 
+						var imagelink = urlparts[0] + '//' + baseurl + '/photos/' + i + '.jpg';
+						responseXML.images.image += <image>{imagelink}</image>;
+					}
+					}
+					
+					
+					
+				
+					var castTemp = [];
+					responseXML.models += <models></models>;
+				
+					for each (var a in scenedata.span.a) {
+						model = <model></model>;
+						var mname=a.text().toString().replace(/,/g,"")
+						model.model += <name>{mname}</name>;
+						model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+						castTemp.push(mname);
+						responseXML.models.model += model;
+					}
+					responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					
+					
+					var tags = y.xpath(scenedata,"//a[contains(@class,'wptag') and contains(@href,'category')]");
+					var tagsTemp = [];
+				
+					for each (var tag in tags) {
+						tagsTemp.push(tag.text());
+					}
+					responseXML.tags += <tags>{tagsTemp.join(', ')}</tags>;
+					var description = "";
+					var descNode = y.xpath(scenedata,"//div[@class='video-description']/article");
+					for each(var child in descNode.*) {
+						var tmp = child.toString().trim();
+						if(tmp != "") {
+							description += tmp + '\n\n'; 
+						}
+					}
+					
+					responseXML.description += <desc>{description}</desc>;
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
