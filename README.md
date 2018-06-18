@@ -31,7 +31,7 @@ If core variables are misconfigured, the script should display an error message 
 A log file will be produced in your configured temp folder with name `<network>_<sitename>.log` or `<sitename>.log`
 
 ### Tagging
-Cast will be automatically added as tags, as well as sitename domin (`<sitename>.com`) and network domain (`<network>.com`) if is a subsite of a network.
+Cast will be automatically added as tags, as well as sitename domain (`<sitename>.com`) and if a network/parent site is associated with, the network domain (`<network>.com`) will be added also.
 You can add static tags for specific sites in `tags_sites.txt`, each site on a new line.
 Syntax: `<sitename>=tag1 tag2 tag3 etc`. Each tag separated by space.
 
