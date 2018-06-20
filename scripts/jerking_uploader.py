@@ -4,7 +4,8 @@
 
 __author__ = "happypenguin"
 __license__ = "MIT"
-__version__ = "2016-01-29"
+__version__ = "2018-06-20"
+__credits__ = "jabemp"
 
 #Requirements:
 #beautifulsoup4>=4.3
