@@ -45,6 +45,9 @@ You can also add tags for the following properties:
 
 Tags will then be split into an array and cleaned. Each tag is trimmed and non alpha-chars are replaced with a dot. Ampersand (&) is replace with the word 'and'. Each tag will be processed by a sed script named `tagfix.txt`, followed by network specific rules in `tagfix_<network>.txt` and site specific rules in `tagfix_<sitename>.txt`. In the end, duplicates are removed, lower cased and sorted alphabetically.
 
+### Using preloaded variables
+It's possible to feed the script with data that the script otherwise is not able to capture, or you want to prepare some data on before hand to override the script creating the values or if you are debugging the script and don't want to spam the imagehost with reuploads of the same images over and over. In case the script finds a value in these variables, it will usually override (images) or add(tags/description). See file `config/scenedata.cfg` for examples and explanation on how to use this functionality.
+
 ### Custom site handling
 Scripts that matches `config/<network>.sh` or `config/<sitename>.sh` will be included into the main script. These scrips may override or contain custom functions to modify progam behaviour. Site specific scripts will take presedence over network specific scripts. See existing custom scripts in the `config` folder for examples.
 
