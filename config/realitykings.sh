@@ -7,7 +7,7 @@ fi
 scenetries[0]="site = '$siteparturl' and date = '${releasedate}'"
 
 function createGIFCover() {
-	
+	local sceneid=$(getValueFromSceneFile "id")
 	thumbs=$(getThumbUrls)
 	writelog "Urls: ${thumbs}"
 	local files=$(downloadImages "${thumbs}")
