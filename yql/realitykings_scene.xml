@@ -46,7 +46,7 @@
 
 					responseXML.poster += <poster>{posterdata}</poster>;
 
-					responseXML.id += <id>{posterdata.split('/').pop().match(/^[^-]+/)[1]}</id>;
+					responseXML.id += <id>{posterdata.split('/').pop().match(/^[^-]+/)[0]}</id>;
 					//mmddyy
 					try{
 					var releasedate = posterdata.split('/').pop().match(/\d{6}/)[0].match(/\d{1,2}/g);
