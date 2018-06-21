@@ -43,7 +43,10 @@
 					
 					var posterdata = scenedata..video.@poster.toString() || scenedata..div.(@class=="player-video").img.@src;
 					
+
 					responseXML.poster += <poster>{posterdata}</poster>;
+
+					responseXML.id += <id>{posterdata.split('/').pop().match(/^[^-]+/)[1]}</id>;
 					//mmddyy
 					try{
 					var releasedate = posterdata.split('/').pop().match(/\d{6}/)[0].match(/\d{1,2}/g);
