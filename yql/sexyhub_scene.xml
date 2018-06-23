@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://www.sexyhub.com';
+				
+				var xpath="//section[@class='paper responsive release-info-container'] | //script[contains(text(),'poster')]"
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				var responseXML = <scene></scene>;
+				
+				function processScene(scenedata) {
+					var sceneurl = url;
+					//y.log(scenedata);
+					
+					try {
+						var title = scenedata.section.article.header.h1.text().toString().replace(/\u00A0/g, ' ').trim();
+						responseXML.title += <title>{title}</title>;
+					} catch(e) {y.log('title:' + e);}
+					
+					try {
+						var poster = scenedata.script.toString().match(/photo.[^"]+jpg/).toString().replace(/\\/g,"");
+						responseXML.poster += <poster>{scheme + '://' + poster}</poster>;
+					} catch(e) {y.log('poster:' + e);}
+					
+					try {
+						var releasedate = scenedata.section.article.p.time.text().toString();
+						//y.log(releasedate);
+						var date = new Date(releasedate);
+
+						responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) {y.log('date:' + e);}
+					
+					try {
+						var models = y.xpath(scenedata,"//a[contains(@href,'/model/')]");
+						var castTemp = [];
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							model = <model></model>;
+							model.model += <name>{a.text()}</name>;
+							model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+							castTemp.push(a.text());
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					} catch(e) {y.log('models:' + e);}
+					
+					try {
+						var tags = y.xpath(scenedata,"//a[@href='/tour/join/']");
+				
+						var tagsTemp = [];
+				
+						for each (var tag in tags) {
+							tagsTemp.push(tag.text());
+						}
+					responseXML.tags += <tags>{tagsTemp.join(', ')}</tags>;
+					} catch(e) {y.log('tags:' + e);}
+					
+					try {
+						
+						var description = scenedata..div.(@class=='overview').p.text();
+						
+						responseXML.description += <desc>{description}</desc>;
+					} catch(e) {y.log('desc:' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
