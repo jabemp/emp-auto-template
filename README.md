@@ -114,3 +114,24 @@ Here is an example with output from YQL response from a `<sitename>_scene.xml`:
 ```
 
 Please see existing custom tables to various sites as examples on how to develop your own.
+
+### Integrate script with rTorrent
+To achieve a faster level of automation, tell rTorrent to execute a script when a download finishes.nAdd this line in your `.rtorrent.rc` file:\
+`system.method.set_key = event.download.finished, rtorrent_post_script, "execute = /home/MYUSERNAME/utils/rtorrent_post_script.sh, \"$d.name=\""` (Change actual path however you want)
+
+Script contents of `rtorrent_post_script.sh`: (remember `chmod u+x rtorrent_post_script.sh` and review the paths in the scripts to fit your setup)
+```bash
+#!/bin/bash
+
+torrentname="$1"
+basedir="${HOME}/downloads"
+
+XXX_0DAY_REGEX="(.*?)\.([0-9]{2}\.[0-9]{2}\.[0-9]{2}|E[0-9]{2,4})\.(.*)\.XXX.*"
+trimmed=$(echo "${torrentname}" | tr " .-" "___" | tr --delete "()")
+if echo "${torrentname}" | grep -qiP "${XXX_0DAY_REGEX}"; then
+	if mkdir "${basedir}/temp/${trimmed}" 2>/dev/null ; then
+		"${HOME}/utils/emp-auto-template-main/scripts/maketemplate.sh" "${basedir}/torrents/${torrentname}" 
+	fi
+fi
+```
+`system.method.set_key = event.download.finished, rtorrent_post_script, "execute = /home/MYUSERNAME/utils/rtorrent_post_script.sh, \"$d.name=\""` (Change actual path however you want)
