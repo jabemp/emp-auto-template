@@ -48,11 +48,11 @@
 					} catch(e) {y.log('poster:' + e);}
 					
 					try {
-						var releasedate = scenedata.section.article.p.time.text().toString();
+						var releasedate = scenedata..span.(@class == 'release-date').text().toString();
 						//y.log(releasedate);
-						//var date = new Date(releasedate);
+						var date = new Date(releasedate);
 
-						//responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+						responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
 					} catch(e) {y.log('date:' + e);}
 					
 					try {
