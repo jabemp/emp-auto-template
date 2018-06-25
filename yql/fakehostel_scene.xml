@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+   <bindings>
+		<select itemPath="scene" produces="XML">
+			<inputs>
+			 <key id="url" type="xs:string" paramType="variable" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'https';
+				var baseurl = scheme + '://www.fakehostel.com';
+				
+				var xpath="//div[@class='trailer-player'] | //img[@class='trailer-cover'] | //div[contains(@class,'release-player__description-outer')] | //div[@class='release-player__info__release-date']";
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				var responseXML = <scene></scene>;
+				
+				function processScene(scenedata) {
+					var sceneurl = url;
+					//y.log(scenedata);
+					
+					try {
+						var id = scenedata..div.(@id == 'trailer-player').@['data-release-id'].toString();
+						responseXML.id += <id>{id}</id>;
+					} catch(e) {y.log('id:' + e);}
+					
+					
+					try {
+						var title = scenedata..header.(@class == 'release-player__description__header').h1.text().toString().replace(/\u00A0/g, ' ').trim();
+						responseXML.title += <title>{title}</title>;
+					} catch(e) {y.log('title:' + e);}
+					
+					try {
+						var poster = scenedata..img.@src.toString();
+						//1021x574_1
+						responseXML.poster += <poster>{scheme + ':' + poster}</poster>;
+					} catch(e) {y.log('poster:' + e);}
+					
+					try {
+						var releasedate = scenedata..div.(@class == 'release-player__info__release-date').text().toString();
+						y.log(releasedate);
+						var date = new Date(releasedate);
+
+						responseXML.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+					} catch(e) {y.log('date:' + e);}
+					
+					try {
+						var models = y.xpath(scenedata,"//a[@class='model-card__info__title']");
+						var castTemp = [];
+						responseXML.models += <models></models>;
+				
+						for each (var a in models) {
+							y.log(a);
+							model = <model></model>;
+							model.model += <name>{a.text().toString().replace(/,/g,'')}</name>;
+							//model.url += <url>{(a.@href.toString().substring(0, 4) == 'http' ? '' : baseurl ) + a.@href}</url>;
+							castTemp.push(a.text().toString().replace(/,/g,''));
+							responseXML.models.model += model;
+						}
+						responseXML.cast = <cast>{castTemp.length > 0 ? niceList(castTemp) : "" }</cast>
+					} catch(e) {y.log('models:' + e);}
+					
+					try {
+						var tags = y.xpath(scenedata,"//article[@class='tag-card']/h4/a");
+				
+						var tagsTemp = [];
+				
+						for each (var tag in tags) {
+							tagsTemp.push(tag.text());
+						}
+					responseXML.tags += <tags>{tagsTemp.join(', ')}</tags>;
+					} catch(e) {y.log('tags:' + e);}
+					
+					try {
+						
+						var description = scenedata..div.(@class=='release-player__description__text scrollable').*.text();
+						
+						responseXML.description += <desc>{description}</desc>;
+					} catch(e) {y.log('desc:' + e);}
+				}
+				processScene(results);
+				
+				
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
