@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+			
+		   </inputs>
+			<execute><![CDATA[
+				var baseurl = 'https://www.fakedrivingschool.com';
+				var xpath = "//div[@class='article-wrapper']";		
+				
+				var url = baseurl + '/tour/videos/';
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = <results>{y.xpath(results, xpath)}</results>;
+				}
+				
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				
+				responseXML = <scenes></scenes>;
+				
+				function processScene(scenedata) {
+					//y.log(scenedata);
+					var scene = <scene></scene>;
+					var scenelink = scenedata..a.(@class=='card-title');
+					var sceneurl = scenelink.@href.toString();
+					
+					scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					scene.title += <title>{scenelink.@title}</title>;
+					
+					var models = y.xpath(scenedata, "//div[@class='model-name']/a");
+					var modelnames = [];
+					for each (a in models) {
+						modelnames.push(a.text().toString().toLowerCase().trim());
+					}
+	
+					scene.titlematch = <titlematch>{modelnames.join(' ')}</titlematch>;
+					
+					responseXML.scenes += scene;
+				}
+				
+				for each (var scene in results.div) {
+					processScene(scene);
+				}
+				response.object = responseXML;
+				//y.log(response.object);
+			]]></execute>
+		</select>
+	</bindings>
+</table>
