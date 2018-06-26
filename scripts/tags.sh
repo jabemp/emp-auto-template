@@ -80,7 +80,7 @@ function getTags() {
 	local resHeight=$(getMediaResHeight)
 	local networktag=""
 	if [[ "$network" != "" ]] && [[ "$fakenetwork" != "1" ]]; then
-		networktag="${network}.com"
+		networktag="${network}.${networkdomainsuffix}"
 	fi
 	
 	if [[ "${addExtensionAsTag}" == "1" ]]; then
@@ -101,7 +101,7 @@ function getTags() {
 		fpsTag=$(getFrameRateTag "${SCENE_MEDIA_FRAMERATE}")
 	fi
 	
-	tagsinput+=",${castastags},${casttags},${sitetags},${releasesite}.com,${networktag},${resHeight},${extensionTag},${dateTag},${fpsTag}"
+	tagsinput+=",${castastags},${casttags},${sitetags},${releasesite}.${sitedomainsuffix},${networktag},${resHeight},${extensionTag},${dateTag},${fpsTag}"
 	local tagsfixed=""
 	IFS=',' read -ra TAGARRAY <<< "$tagsinput"
 	for tag in "${TAGARRAY[@]}"; do
