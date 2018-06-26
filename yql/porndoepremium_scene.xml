@@ -35,7 +35,7 @@
 
 				function processScene(scenedata) {
 					var sceneurl = url;
-					y.log(scenedata);
+					//y.log(scenedata);
 					try {
 						var title = scenedata.title.text().toString().replace(/\u00A0/g, ' ').trim();
 						//y.log('title pre: ' + title);
