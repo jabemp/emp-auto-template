@@ -97,11 +97,15 @@ function getTags() {
 		
 	fi
 	
+	if [[ "${addYearAsTag}" == "1" ]]; then
+		yearTag=$(date -d"${SCENE_DATE}" +"%Y")
+	fi
+	
 	if [[ "${addFpsAsTag}" == "1" ]]; then
 		fpsTag=$(getFrameRateTag "${SCENE_MEDIA_FRAMERATE}")
 	fi
 	
-	tagsinput+=",${castastags},${casttags},${sitetags},${releasesite}.${sitedomainsuffix},${networktag},${resHeight},${extensionTag},${dateTag},${fpsTag}"
+	tagsinput+=",${castastags},${casttags},${sitetags},${releasesite}.${sitedomainsuffix},${networktag},${resHeight},${extensionTag},${dateTag},${fpsTag},${yearTag}"
 	local tagsfixed=""
 	IFS=',' read -ra TAGARRAY <<< "$tagsinput"
 	for tag in "${TAGARRAY[@]}"; do
