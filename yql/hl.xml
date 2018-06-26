@@ -48,6 +48,7 @@
 					try {
 						var title = scenedata..h3.a.text().toString().trim();
 						scene.title += <title>{title}</title>;
+						scene.titlematch += <titlematch>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ").toLowerCase()}</titlematch>;
 					} catch(e) { y.log('title: ' + e);}
 					
 					try {
@@ -58,7 +59,7 @@
 						
 						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
 						scene.date += <date>{datealtstring}</date>;
-						scene.dateiso += <dateiso>{date.toISOString().substring(0,10)}</dateiso>;
+						
 					} catch(e) { y.log('date: ' + e);}
 					
 					responseXML.scenes += scene;
