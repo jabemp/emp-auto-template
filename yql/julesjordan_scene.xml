@@ -115,7 +115,7 @@
 						
 						var rplc = '_[1-' + lastimgnumber.toString() + '].jpg';
 						y.log(rplc);
-						var curlExpr = ((firstpic.toString().substring(0, 4) == 'http' ? '' : baseurl ) + firstpic.toString().replace(/_1\.jpg/, rplc)).replace(/\/thumb\//, 'photo/');
+						var curlExpr = ((firstpic.toString().substring(0, 4) == 'http' ? '' : baseurl ) + firstpic.toString().replace(/_1\.jpg/, rplc)).replace(/\/thumbs\//, '/photos/');
 						y.log(curlExpr);
 						responseXML.picsetCurl += <picsetCurl>{curlExpr}</picsetCurl>;
 						
