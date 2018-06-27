@@ -7,7 +7,7 @@
 		   </inputs>
 			<execute><![CDATA[
 			
-				var xpath="//h3[@class='title'] | //script[contains(text(),'picPreview')] | //div[@id='infoWrapper'] | //div[@class= 'buttonHolder picturesItem lastControl']"
+				var xpath="//h1[@class='title'] | //script[contains(text(),'picPreview')] | //div[@id='infoWrapper'] | //div[@class= 'buttonHolder picturesItem lastControl']"
 				
 				var results = y.rest(url).accept('text/html').get().response;
 				if (xpath) {
@@ -35,7 +35,7 @@
 				//var results = query.results;
 				function processScene(scenedata) {
 					
-					var title = scenedata.h3.text().toString().replace(/\u00A0/g, ' ').trim();
+					var title = scenedata.h1.text().toString().replace(/\u00A0/g, ' ').trim();
 					
 					responseXML.title += <title>{title}</title>;
 					responseXML.titleclean += <titleclean>{title.replace(/[^a-z0-9- ]/gi,"").replace(/\s+/g, " ")}</titleclean>;
