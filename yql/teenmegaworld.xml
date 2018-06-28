@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<table xmlns="http://query.yahooapis.com/v1/schema/table.xsd" securityLevel="any" https="false">
+	<meta>
+   </meta>
+   <bindings>
+		<select itemPath="scenes.scene" produces="XML">
+			<inputs>
+				<key id="site" type="xs:string" paramType="path" required="true"/>
+		   </inputs>
+			<execute><![CDATA[
+				var scheme = 'http';
+				var baseurl = scheme + '://teenmegaworld.net';
+				
+				site = site.toLowerCase();
+				var sites = {
+					'tmwvrnet': '48',
+					'beauty4k': '46',
+					'analbeauty': '44',
+					'x-angels': '42',
+					'creampieangels': '34',
+					'fuckstudies': '27',
+					'firstbgg': '36',
+					'teensexmania': '18',
+					'analangels': '37',
+					'trickymasseur': '30',
+					'teensexmovs': '9',
+					'beautyangels': '31',
+					'dirtydoctor': '40',
+					'woworgasms': '41',
+					'dirtycoach': '43',
+					'squirtingvirgin': '32',
+					'watchmefucked': '38',
+					'teenstarsonly': '22',
+					'gag-n-gape': '14',
+					'lollyhardcore': '26',
+					'nubilegirlshd': '45',
+					'soloteengirls': '8',
+					'privateteenvideo': '16',
+					'hometeenvids': '24',
+					'teens3some': '13',
+					'18firstsex': '28',
+					'hometoyteens': '19',
+					'aboutgirlslove': '12',
+					'nylonsx': '23',
+					'old-n-young': '15',
+					'atmovs': '20',
+					'exgfbox': '25'
+ 				};
+ 				
+				var siteID = sites[site];
+				var url = baseurl + '/search.php?site[]=' + siteID;
+				
+				var xpath = '//li/article/div[@class="main"]';
+				
+				var results = y.rest(url).accept('text/html').get().response;
+				if (xpath) {
+					results = y.xpath(results, xpath);
+				}
+				var niceList = function(array, join, finalJoin) {
+					if (array.length == 1) return array[0];
+					var arr = array.slice(0), last = arr.pop();
+					join = join || ', ';
+					finalJoin = finalJoin || ' & ';
+					return arr.join(join) + finalJoin + last;    
+				};
+				function zeroFill( number, width ) {
+				  width -= number.toString().length;
+				  if ( width > 0 )
+				  {
+					return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+				  }
+				  return number + ""; // always return a string
+				}
+				
+				responseXML = <scenes></scenes>;
+								
+				function processScene(scenedata) {
+					var scene = <scene></scene>;
+					//y.log(scenedata);
+
+					try {
+						var sceneurl = scenedata.h1.a.@href.toString();
+						scene.url += <url>{( sceneurl.substring(0, 4) == 'http' ? '' : baseurl ) + sceneurl}</url>;
+					} catch(e) { y.log('url: ' + e);}
+					
+					try {
+						var title = scenedata.h1.a.text().toString();
+						scene.title += <title>{title}</title>;
+					} catch(e) { y.log('title: ' + e);}
+					
+					
+					try {
+						var releasedate = scenedata.time.text().toString().trim();
+						
+						var date = new Date(releasedate);
+						
+						var datealtstring = date.getFullYear().toString().substring(2,4) + '.' + zeroFill(date.getMonth() + 1,2) + '.' + zeroFill(date.getDate(),2);
+						scene.date += <date>{datealtstring}</date>;
+					} catch(e) { y.log('date: ' + e);}
+					responseXML.scenes += scene;
+				}
+				
+				for each (var div in results) {
+					processScene(div);
+				}
+				response.object = responseXML;
+			]]></execute>
+		</select>
+	</bindings>
+</table>
