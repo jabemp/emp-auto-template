@@ -80,7 +80,7 @@ A custom table contains javascript code to parse html and build an xml response 
 
 In order to add support for new site, you need two files, one yql table to list a site's episodes `<sitename>.xml` and one table to extract episode metadata (`<sitename>_scene.xml`)
 The index table should return an xml strcture like this:
-```
+```xml
 <results>
     <scene>
       <url>http://www.kinkysite.com/videos/ep/1234</url>
@@ -96,7 +96,7 @@ The index table should return an xml strcture like this:
 The where-clause (ex: `select * from index where date = '17.10.21'`) in the query will hopefully narrow down the `scene`-list down to 1. This means we have a match between release and episode. It is also possible to match on title (from the title in the release name) agains element `titlematch` in the xml in case the episode list does not provide dates.
 
 Here is an example with output from YQL response from a `<sitename>_scene.xml`:
-```
+```xml
 <results>
   <scene>
     <title>A Stepmom's Secrets</title>
