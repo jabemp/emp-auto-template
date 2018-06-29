@@ -8,7 +8,7 @@
 			<execute><![CDATA[
 				var scheme = 'https';
 				var baseurl = scheme + '://analized.com';
-				var xpath = '//div[@class="latest-updates"]/div[contains(@class,"update")]';
+				var xpath = '//div[contains(@class,"latest-updates")]/div[contains(@class,"update")]';
 				
 				var results = y.rest(remoteurl).accept('text/html').get().response;
 				if (xpath) {
