@@ -279,13 +279,12 @@ echo
 . "${scriptsfolder}/tags.sh"
 
 SCENE_TAGS=$(getTags)
-writelog "Scene tags: ${SCENE_TAGS}"
-echo "Scene tags: ${SCENE_TAGS}"
-
 preloadedtags=$(getPreloadedData "${releasesite}_${releasedate}_tags")
 if [[ "${preloadedtags}" != "" ]]; then
 	SCENE_TAGS="${SCENE_TAGS} ${preloadedtags}"
 fi
+writelog "Scene tags: ${SCENE_TAGS}"
+echo "Scene tags: ${SCENE_TAGS}"
 
 preloadedmainimage=$(getPreloadedData "${releasesite}_${releasedate}_mainimage")
 if [[ "${preloadedmainimage}" != "" ]]; then
@@ -401,6 +400,16 @@ if [ ! -f "${torrentfile}" ]; then
 fi
 writelog "Torrent file: ${torrentfile}"
 echo "Torrent file: ${torrentfile}"
+
+preloadeduploadmode=$(getPreloadedData "${releasesite}_${releasedate}_uploadmode")
+if [[ "${preloadeduploadmode}" != "" ]]; then
+	uploadmode="${preloadeduploadmode}"
+fi
+
+preloadedcategory=$(getPreloadedData "${releasesite}_${releasedate}_category")
+if [[ "${preloadedcategory}" != "" ]]; then
+	SCENE_CATEGORY="${preloadedcategory}"
+fi
 
 postMergeTemplate
 
