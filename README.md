@@ -13,7 +13,7 @@
 ### Prerequisites
 * Linux environment with bash v4+, [xmllint](http://www.xmlsoft.org/downloads.html) and [mediainfo](https://mediaarea.net/en/MediaInfo).
 * Python 3: https://www.python.org/downloads/ (Needed for image upload and torrent maker).
-* Python packages 'beautifulsoup4', 'html5lib' and 'requests', see `scripts/jerking_uploader.py` for more info. Make sure you can successfully upload a local image using this script on beforehand.
+* Python packages `beautifulsoup4`, `html5lib` and `requests`, see `scripts/jerking_uploader.py` for more info. Make sure you can successfully upload a local image using this script on beforehand.
 
 ### Installation
 * Download and extract, make sure folder structure is preserved. 
